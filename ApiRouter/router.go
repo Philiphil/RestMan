@@ -1,9 +1,9 @@
 package ApiRouter
 
 import (
-	"ApiMan/ApiRouter/Method"
-	"ApiMan/Gorm"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/ApiRouter/Method"
+	"github.com/philiphil/apiman/Gorm"
 )
 
 type ApiRouter[T Gorm.IEntity] struct {

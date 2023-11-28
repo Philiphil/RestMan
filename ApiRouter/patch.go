@@ -1,10 +1,10 @@
 package ApiRouter
 
 import (
-	"ApiMan/Gin"
-	"ApiMan/Gorm"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/Gin"
+	"github.com/philiphil/apiman/Gorm"
 )
 
 func (r *ApiRouter[T]) Patch(c *gin.Context) {

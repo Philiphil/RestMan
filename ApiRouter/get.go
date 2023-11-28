@@ -1,9 +1,9 @@
 package ApiRouter
 
 import (
-	"ApiMan/Gin"
-	"ApiMan/Serializer/Format"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/Gin"
+	"github.com/philiphil/apiman/Serializer/Format"
 )
 
 func (r *ApiRouter[T]) Get(c *gin.Context) {

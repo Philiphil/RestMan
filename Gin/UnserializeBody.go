@@ -1,10 +1,11 @@
 package Gin
 
 import (
-	"ApiMan/Serializer/Format"
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/Serializer"
+	"github.com/philiphil/apiman/Serializer/Format"
 	"io"
 )
 

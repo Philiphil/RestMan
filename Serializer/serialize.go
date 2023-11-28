@@ -1,12 +1,12 @@
 package serializer
 
 import (
-	"ApiMan/Serializer/Filter"
-	"ApiMan/Serializer/Format"
 	"encoding/csv"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/philiphil/apiman/Serializer/Filter"
+	"github.com/philiphil/apiman/Serializer/Format"
 	"reflect"
 	"strings"
 )

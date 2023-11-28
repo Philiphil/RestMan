@@ -1,10 +1,10 @@
 package ApiRouter
 
 import (
-	serializer "ApiMan/Serializer"
-	"ApiMan/Serializer/Format"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/Serializer"
+	"github.com/philiphil/apiman/Serializer/Format"
 )
 
 func (r *ApiRouter[T]) Head(c *gin.Context) {

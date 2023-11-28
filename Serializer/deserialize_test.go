@@ -1,8 +1,8 @@
 package serializer
 
 import (
-	"ApiMan/Serializer/Format"
 	"fmt"
+	"github.com/philiphil/apimanSerializer/Format"
 	"reflect"
 	"testing"
 )

@@ -1,8 +1,8 @@
 package Gorm_test
 
 import (
-	"ApiMan/Gorm"
 	"context"
+	"github.com/philiphil/apiman/Gorm"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

@@ -1,7 +1,8 @@
 package Gin
 
 import (
-	"ApiMan/Serializer/Format"
+	"github.com/philiphil/apiman/Serializer"
+	"github.com/philiphil/apiman/Serializer/Format"
 	"net/http"
 )
 
@@ -32,11 +33,11 @@ func (r SerializerRenderer) Render(w http.ResponseWriter) (err error) {
 // WriteContentType (JSON) writes JSON ContentType.
 func (r SerializerRenderer) WriteContentType(w http.ResponseWriter) {
 	switch r.Format {
-	case Format2.JSON:
+	case Format.JSON:
 		writeContentType(w, jsonContentType)
-	case Format2.XML:
+	case Format.XML:
 		writeContentType(w, xmlContentType)
-	case Format2.CSV:
+	case Format.CSV:
 		writeContentType(w, csvContentType)
 	}
 }

@@ -1,9 +1,9 @@
 package ApiRouter
 
 import (
-	"ApiMan/Gin"
-	"ApiMan/Gorm"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/Gin"
+	"github.com/philiphil/apiman/Gorm"
 )
 
 func (r *ApiRouter[T]) Put(c *gin.Context) {

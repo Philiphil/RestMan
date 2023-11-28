@@ -1,6 +1,6 @@
 package serializer
 
-import "ApiMan/Serializer/Format"
+import "github.com/philiphil/apiman/Serializer/Format"
 
 // Serializer is the main serializer struct
 type Serializer struct {
