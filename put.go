@@ -2,7 +2,7 @@ package ApiMan
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/gorm"
+	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/router"
 )
 
@@ -18,7 +18,7 @@ func (r *ApiRouter[T]) Put(c *gin.Context) {
 		return
 	}
 
-	var cast gorm.IEntity
+	var cast orm.IEntity
 	cast = *entity
 	cast = cast.SetId(id)
 

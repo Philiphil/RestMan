@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"gorm.io/gorm"
@@ -29,10 +29,10 @@ func CastId(id any) ID {
 }
 
 type Entity struct {
-	Id          ID `json:"id" gorm:"primaryKey"`
+	Id          ID `json:"id" orm:"primaryKey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	DeletedAt   gorm.DeletedAt `orm:"index"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 }

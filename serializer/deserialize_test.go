@@ -2,7 +2,7 @@ package serializer
 
 import (
 	"fmt"
-	"github.com/philiphil/apimanSerializer/Format"
+	"github.com/philiphil/apiman/serializer/format"
 	"reflect"
 	"testing"
 )
@@ -47,7 +47,7 @@ var testDeserializedResult = Test{
 
 // basic struct
 func TestSerializer_Deserialize(t *testing.T) {
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
 		panic(err)
@@ -71,7 +71,7 @@ func TestSerializer_Deserialize2(t *testing.T) {
 		Hidden{0, 0},
 	}
 
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
 		panic(err)
@@ -100,7 +100,7 @@ func TestSerializer_Deserialize3(t *testing.T) {
 			Hidden{0, 0},
 		},
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
 		panic(err)
@@ -124,7 +124,7 @@ func TestSerializer_Deserialize4(t *testing.T) {
 	expected1.Test0 = 1
 	expected1.Test1 = 0
 
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
 		panic(err)
@@ -151,7 +151,7 @@ func TestSerializer_Deserialize5(t *testing.T) {
 			Hidden{0, 0},
 		},
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
 		panic(err)
@@ -181,7 +181,7 @@ func TestSerializer_Deserialize6(t *testing.T) {
 			Hidden{0, 0},
 		},
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
 		panic(err)
@@ -210,7 +210,7 @@ func TestSerializer_Deserialize7(t *testing.T) {
 			Hidden{0, 0},
 		},
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
 		panic(err)
@@ -244,7 +244,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 		Test4: nil,
 	}
 
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
 		panic(err)
@@ -263,7 +263,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 func TestSerializer_Deserialize9(t *testing.T) {
 	test1 := make(map[string]any)
 	test1["test"] = test
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
 		panic(err)
@@ -281,7 +281,7 @@ func TestSerializer_Deserialize9(t *testing.T) {
 func TestSerializer_Deserialize10(t *testing.T) {
 	test1 := make(map[string]Test)
 	test1["test"] = test
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
 		panic(err)
@@ -297,7 +297,7 @@ func TestSerializer_Deserialize10(t *testing.T) {
 
 // anonymous
 func TestSerializer_Deserialize11(t *testing.T) {
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	tt := Test2{test}
 	rr := Test2{testDeserializedResult}
 	serialized, err := s.Serialize(tt, "test")
@@ -317,7 +317,7 @@ func TestSerializer_Deserialize11(t *testing.T) {
 
 // anonymous w/ptr
 func TestSerializer_Deserialize12(t *testing.T) {
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	tt := Test2{test}
 	rr := Test2{testDeserializedResult}
 	serialized, err := s.Serialize(&tt, "test")
@@ -342,7 +342,7 @@ func TestSerializer_MergeObjects(t *testing.T) {
 	result := Test{
 		9, 11, 7, 6, 11, 11, 3,
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
 		panic(err)
@@ -368,7 +368,7 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 	result := Test{
 		9, 11, 7, 6, 11, 11, 3,
 	}
-	s := NewSerializer(Format.JSON)
+	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
 		panic(err)

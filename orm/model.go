@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 type GormModel[E any] interface {
 	ToEntity() E

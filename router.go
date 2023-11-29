@@ -2,12 +2,12 @@ package ApiMan
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/gorm"
 	"github.com/philiphil/apiman/method"
+	"github.com/philiphil/apiman/orm"
 )
 
-type ApiRouter[T gorm.IEntity] struct {
-	Orm     gorm.ORM[T]
+type ApiRouter[T orm.IEntity] struct {
+	Orm     orm.ORM[T]
 	Methods []method.ApiMethod
 	Prefix  string
 	Name    string
@@ -38,7 +38,7 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 	return
 }
 
-func NewApiRouter[T gorm.IEntity](orm gorm.ORM[T], methods []method.ApiMethod, prefix, name string) *ApiRouter[T] {
+func NewApiRouter[T orm.IEntity](orm orm.ORM[T], methods []method.ApiMethod, prefix, name string) *ApiRouter[T] {
 	return &ApiRouter[T]{
 		Orm:     orm,
 		Methods: methods,

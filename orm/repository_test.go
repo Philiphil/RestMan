@@ -1,8 +1,8 @@
-package gorm_test
+package orm_test
 
 import (
 	"context"
-	"github.com/philiphil/apiman/gorm"
+	"github.com/philiphil/apiman/orm"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -21,13 +21,13 @@ type Product struct {
 
 // ProductGorm is DTO used to map Product entity to database
 type ProductGorm struct {
-	ID          uint   `gorm:"primaryKey;column:id"`
-	Name        string `gorm:"column:name"`
-	Weight      uint   `gorm:"column:weight"`
-	IsAvailable bool   `gorm:"column:is_available"`
+	ID          uint   `orm:"primaryKey;column:id"`
+	Name        string `orm:"column:name"`
+	Weight      uint   `orm:"column:weight"`
+	IsAvailable bool   `orm:"column:is_available"`
 }
 
-// ToEntity respects the gorm.GormModel interface
+// ToEntity respects the orm.GormModel interface
 // Creates new Entity from GORM model.
 func (g ProductGorm) ToEntity() Product {
 	return Product{
@@ -38,7 +38,7 @@ func (g ProductGorm) ToEntity() Product {
 	}
 }
 
-// FromEntity respects the gorm.GormModel interface
+// FromEntity respects the orm.GormModel interface
 // Creates new GORM model from Entity.
 func (g ProductGorm) FromEntity(product Product) interface{} {
 	return ProductGorm{
@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 }
 func TestGormRepository_Insert(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -86,7 +86,7 @@ func TestGormRepository_Insert(t *testing.T) {
 
 func TestGormRepository_FindByID(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	_, err := repository.FindByID(ctx, 8)
@@ -98,7 +98,7 @@ func TestGormRepository_FindByID(t *testing.T) {
 
 func TestGormRepository_Count(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	nb, err := repository.Count(ctx)
@@ -113,7 +113,7 @@ func TestGormRepository_Count(t *testing.T) {
 
 func TestGormRepository_DeleteByID(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 	err := repository.DeleteByID(ctx, 8)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestGormRepository_DeleteByID(t *testing.T) {
 
 func TestGormRepository_Find(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -144,7 +144,7 @@ func TestGormRepository_Find(t *testing.T) {
 		IsAvailable: true,
 	}
 	repository.Insert(ctx, &product2)
-	many, err := repository.Find(ctx, gorm.GreaterOrEqual("weight", 50))
+	many, err := repository.Find(ctx, orm.GreaterOrEqual("weight", 50))
 	if err != nil {
 		panic(err)
 	}
@@ -159,7 +159,7 @@ func TestGormRepository_Find(t *testing.T) {
 		IsAvailable: false,
 	})
 
-	many, err = repository.Find(ctx, gorm.GreaterOrEqual("weight", 90))
+	many, err = repository.Find(ctx, orm.GreaterOrEqual("weight", 90))
 	if err != nil {
 		panic(err)
 	}
@@ -167,9 +167,9 @@ func TestGormRepository_Find(t *testing.T) {
 		panic("should be 2")
 	}
 
-	many, err = repository.Find(ctx, gorm.And(
-		gorm.GreaterOrEqual("weight", 90),
-		gorm.Equal("is_available", true)),
+	many, err = repository.Find(ctx, orm.And(
+		orm.GreaterOrEqual("weight", 90),
+		orm.Equal("is_available", true)),
 	)
 	if err != nil {
 		panic(err)
@@ -181,7 +181,7 @@ func TestGormRepository_Find(t *testing.T) {
 
 func TestGormRepository_NewInstanceEntity(t *testing.T) {
 	db, _ := getDB()
-	repository := gorm.NewRepository[ProductGorm, Product](db)
+	repository := orm.NewRepository[ProductGorm, Product](db)
 
 	entity := Product{}
 	if repository.NewEntity() != entity {

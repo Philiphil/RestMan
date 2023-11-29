@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 func ChunkSlice[T any](slice []T, chunkSize int) [][]T {
 	var chunks [][]T
