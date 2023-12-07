@@ -4,9 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/method"
 	"github.com/philiphil/apiman/orm"
+	"github.com/philiphil/apiman/orm/entity"
 )
 
-type ApiRouter[T orm.IEntity] struct {
+type ApiRouter[T entity.IEntity] struct {
 	Orm     orm.ORM[T]
 	Methods []method.ApiMethod
 	Prefix  string
@@ -38,7 +39,7 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 	return
 }
 
-func NewApiRouter[T orm.IEntity](orm orm.ORM[T], methods []method.ApiMethod, prefix, name string) *ApiRouter[T] {
+func NewApiRouter[T entity.IEntity](orm orm.ORM[T], methods []method.ApiMethod, prefix, name string) *ApiRouter[T] {
 	return &ApiRouter[T]{
 		Orm:     orm,
 		Methods: methods,

@@ -2,13 +2,14 @@ package ApiMan
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/router"
 	"github.com/philiphil/apiman/serializer/format"
 )
 
 func (r *ApiRouter[T]) Post(c *gin.Context) {
 	entity := r.Orm.NewEntity()
 
-	if !gin.UnserializeBodyAndMerge(c, &entity) {
+	if !router.UnserializeBodyAndMerge(c, &entity) {
 		return
 	}
 
@@ -18,9 +19,9 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		return
 	}
 
-	c.Render(201, gin.SerializerRenderer{
+	c.Render(201, router.SerializerRenderer{
 		Data:   &entity,
-		format: format.JSON,
+		Format: format.JSON,
 		Groups: []string{},
 	})
 }

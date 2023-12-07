@@ -1,19 +1,20 @@
-package orm
+package repository
 
 import (
 	"context"
+	"github.com/philiphil/apiman/orm/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"sync"
 )
 
-func NewRepository[M GormModel[E], E any](db *gorm.DB) *GormRepository[M, E] {
+func NewRepository[M entity.Model[E], E entity.IEntity](db *gorm.DB) *GormRepository[M, E] {
 	return &GormRepository[M, E]{
 		db: db,
 	}
 }
 
-type GormRepository[M GormModel[E], E any] struct {
+type GormRepository[M entity.Model[E], E entity.IEntity] struct {
 	db                 *gorm.DB
 	assocationsLoaded  bool
 	preloadAssocations bool
@@ -70,7 +71,7 @@ func (r *GormRepository[M, E]) Delete(ctx context.Context, entity *E) error {
 	return nil
 }
 
-func (r *GormRepository[M, E]) DeleteByID(ctx context.Context, id any) error {
+func (r *GormRepository[M, E]) DeleteByID(ctx context.Context, id entity.ID) error {
 	var start M
 	err := r.db.WithContext(ctx).Delete(&start, &id).Error
 	if err != nil {
@@ -93,7 +94,7 @@ func (r *GormRepository[M, E]) Update(ctx context.Context, entity *E) error {
 	return nil
 }
 
-func (r *GormRepository[M, E]) FindByID(ctx context.Context, id any) (E, error) {
+func (r *GormRepository[M, E]) FindByID(ctx context.Context, id entity.ID) (E, error) {
 	var model M
 
 	err := r.getPreWarmDbForSelect(ctx).First(&model, id).Error

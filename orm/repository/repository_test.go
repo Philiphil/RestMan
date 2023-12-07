@@ -1,8 +1,8 @@
-package orm_test
+package repository_test
 
 import (
 	"context"
-	"github.com/philiphil/apiman/orm"
+	"github.com/philiphil/apiman/orm/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 }
 func TestGormRepository_Insert(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -86,7 +86,7 @@ func TestGormRepository_Insert(t *testing.T) {
 
 func TestGormRepository_FindByID(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	_, err := repository.FindByID(ctx, 8)
@@ -98,7 +98,7 @@ func TestGormRepository_FindByID(t *testing.T) {
 
 func TestGormRepository_Count(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	nb, err := repository.Count(ctx)
@@ -113,7 +113,7 @@ func TestGormRepository_Count(t *testing.T) {
 
 func TestGormRepository_DeleteByID(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 	err := repository.DeleteByID(ctx, 8)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestGormRepository_DeleteByID(t *testing.T) {
 
 func TestGormRepository_Find(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -144,7 +144,7 @@ func TestGormRepository_Find(t *testing.T) {
 		IsAvailable: true,
 	}
 	repository.Insert(ctx, &product2)
-	many, err := repository.Find(ctx, orm.GreaterOrEqual("weight", 50))
+	many, err := repository.Find(ctx, repository.GreaterOrEqual("weight", 50))
 	if err != nil {
 		panic(err)
 	}
@@ -159,7 +159,7 @@ func TestGormRepository_Find(t *testing.T) {
 		IsAvailable: false,
 	})
 
-	many, err = repository.Find(ctx, orm.GreaterOrEqual("weight", 90))
+	many, err = repository.Find(ctx, repository.GreaterOrEqual("weight", 90))
 	if err != nil {
 		panic(err)
 	}
@@ -167,9 +167,9 @@ func TestGormRepository_Find(t *testing.T) {
 		panic("should be 2")
 	}
 
-	many, err = repository.Find(ctx, orm.And(
-		orm.GreaterOrEqual("weight", 90),
-		orm.Equal("is_available", true)),
+	many, err = repository.Find(ctx, repository.And(
+		repository.GreaterOrEqual("weight", 90),
+		repository.Equal("is_available", true)),
 	)
 	if err != nil {
 		panic(err)
@@ -181,7 +181,7 @@ func TestGormRepository_Find(t *testing.T) {
 
 func TestGormRepository_NewInstanceEntity(t *testing.T) {
 	db, _ := getDB()
-	repository := orm.NewRepository[ProductGorm, Product](db)
+	repository := repository.NewRepository[ProductGorm, Product](db)
 
 	entity := Product{}
 	if repository.NewEntity() != entity {

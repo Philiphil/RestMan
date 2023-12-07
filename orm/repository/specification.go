@@ -1,4 +1,4 @@
-package orm
+package repository
 
 import (
 	"fmt"

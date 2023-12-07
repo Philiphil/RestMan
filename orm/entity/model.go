@@ -1,6 +1,6 @@
-package orm
+package entity
 
-type GormModel[E any] interface {
+type Model[E IEntity] interface {
 	ToEntity() E
 	FromEntity(entity E) interface{}
 }

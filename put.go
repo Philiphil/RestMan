@@ -2,24 +2,24 @@ package ApiMan
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/orm"
+	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/router"
 )
 
 func (r *ApiRouter[T]) Put(c *gin.Context) {
 	id := c.Param("id")
-	entity, err := r.Orm.GetByID(id)
+	obj, err := r.Orm.GetByID(id)
 	if err != nil {
 		bfr := r.Orm.NewEntity()
-		entity = &bfr
+		obj = &bfr
 	}
 
-	if !router.UnserializeBodyAndMerge(c, entity) {
+	if !router.UnserializeBodyAndMerge(c, obj) {
 		return
 	}
 
-	var cast orm.IEntity
-	cast = *entity
+	var cast entity.IEntity
+	cast = *obj
 	cast = cast.SetId(id)
 
 	convertedEntity, _ := cast.(T)

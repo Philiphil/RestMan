@@ -2,13 +2,14 @@ package orm
 
 import (
 	"context"
+	"github.com/philiphil/apiman/orm/entity"
 )
 
-type ORM[T IEntity] struct {
-	repo IRepository[GormModel[T], T]
+type ORM[T entity.IEntity] struct {
+	repo IRepository[entity.Model[T], T]
 }
 
-func NewORM[T IEntity](repo IRepository[GormModel[T], T]) *ORM[T] {
+func NewORM[T entity.IEntity](repo IRepository[entity.Model[T], T]) *ORM[T] {
 	return &ORM[T]{
 		repo: repo,
 	}
@@ -25,7 +26,7 @@ func (r *ORM[T]) GetAll() ([]T, error) {
 
 func (r *ORM[T]) GetByID(id any) (*T, error) {
 	ctx := context.Background()
-	item, err := r.repo.FindByID(ctx, id)
+	item, err := r.repo.FindByID(ctx, entity.CastId(id))
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (r *ORM[T]) Update(item *T) error {
 
 func (r *ORM[T]) Delete(id any) error {
 	ctx := context.Background()
-	err := r.repo.DeleteByID(ctx, id)
+	err := r.repo.DeleteByID(ctx, entity.CastId(id))
 	if err != nil {
 		return err
 	}

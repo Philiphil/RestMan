@@ -1,4 +1,4 @@
-package orm
+package repository
 
 func ChunkSlice[T any](slice []T, chunkSize int) [][]T {
 	var chunks [][]T

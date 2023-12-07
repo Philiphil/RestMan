@@ -1,12 +1,12 @@
 package user
 
-import "github.com/philiphil/apiman/orm"
+import (
+	"github.com/philiphil/apiman/orm/entity"
+)
 
 type IUser interface {
-	HasReadingRight(entity orm.IEntity) bool
-	HasWritingRight(entity orm.IEntity) bool
-	SetId(any) orm.IEntity
-	GetId() any
+	SetId(any) entity.IEntity
+	GetId() entity.ID
 }
 
 type Auth interface {

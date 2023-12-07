@@ -1,27 +1,29 @@
 package user
 
-import "github.com/philiphil/apiman/orm"
+import (
+	"github.com/philiphil/apiman/orm/entity"
+)
 
 type TestUser struct {
-	ID orm.ID
+	ID entity.ID
 }
 
-func (t TestUser) HasReadingRight(entity orm.IEntity) bool {
+func (t TestUser) HasReadingRight(entity entity.IEntity) bool {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t TestUser) HasWritingRight(entity orm.IEntity) bool {
+func (t TestUser) HasWritingRight(entity entity.IEntity) bool {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t TestUser) SetId(a any) orm.IEntity {
+func (t TestUser) SetId(a any) entity.IEntity {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t TestUser) GetId() any {
+func (t TestUser) GetId() entity.ID {
 	//TODO implement me
 	panic("implement me")
 }

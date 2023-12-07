@@ -30,9 +30,21 @@ func JsonldCollection[T any](items []T, currentUrl string, currentPage int, para
 	}
 
 	view["hydra:first"] = url + "page=1"
-	view["hydra:last"] = url + "page=" + strconv.Itoa(max(maxpage, 1))
+	view["hydra:last"] = url + "page=" + strconv.Itoa(Max(maxpage, 1))
 
 	m["hydra:view"] = view
 
 	return m
+}
+
+func Max(vars ...int) int {
+	max := vars[0]
+
+	for _, i := range vars {
+		if i > max {
+			max = i
+		}
+	}
+
+	return max
 }
