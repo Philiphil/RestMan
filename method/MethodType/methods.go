@@ -1,6 +1,4 @@
-package method
-
-type ApiMethod int8
+package method_type
 
 const (
 	Undefined ApiMethod = iota

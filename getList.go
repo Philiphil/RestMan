@@ -2,6 +2,7 @@ package ApiMan
 
 import (
 	"github.com/gin-gonic/gin"
+	method_type "github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
 	"github.com/philiphil/apiman/serializer/format"
 	"strconv"
@@ -52,6 +53,6 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 		router.SerializerRenderer{
 			Data:   objects,
 			Format: format.JSON,
-			Groups: []string{},
+			Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,
 		})
 }
