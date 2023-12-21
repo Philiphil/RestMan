@@ -1,4 +1,4 @@
-package ApiMan
+package apiman
 
 import (
 	"github.com/gin-gonic/gin"
@@ -6,16 +6,15 @@ import (
 	method_type "github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
-	"reflect"
-	"strings"
+	"github.com/philiphil/apiman/security"
 	"unicode"
 )
 
 type ApiRouter[T entity.IEntity] struct {
-	Orm     orm.ORM[T]
-	Methods []method.ApiMethodConfiguration
-	//AuthProvider
-	Route string
+	Orm          orm.ORM[T]
+	Methods      []method.ApiMethodConfiguration
+	AuthProvider security.AuthProvider
+	Route        string
 }
 
 func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
@@ -41,28 +40,6 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 		}
 	}
 	return
-}
-
-func NewApiRouter[T entity.IEntity](orm orm.ORM[T], methods []method.ApiMethodConfiguration, route ...string) *ApiRouter[T] {
-	router := &ApiRouter[T]{
-		Orm:     orm,
-		Methods: methods,
-	}
-	if len(route) > 0 {
-		if !strings.HasPrefix(route[0], "/") {
-			router.Route = "/" + route[0]
-		} else {
-			router.Route = route[0]
-		}
-		if !strings.HasSuffix(router.Route, "/") {
-			router.Route = strings.TrimSuffix(router.Route, "/")
-		}
-	} else {
-		router.Route = "/api/" + convertToSnakeCase(reflect.TypeOf(orm.NewEntity()).Name())
-	}
-
-	return router
-
 }
 
 func convertToSnakeCase(input string) string {

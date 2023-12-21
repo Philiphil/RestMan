@@ -1,4 +1,4 @@
-package ApiMan
+package apiman
 
 import (
 	"fmt"

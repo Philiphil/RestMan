@@ -1,4 +1,4 @@
-package ApiMan
+package apiman
 
 import (
 	"github.com/gin-gonic/gin"
