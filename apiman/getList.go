@@ -2,7 +2,7 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
-	method_type "github.com/philiphil/apiman/method/MethodType"
+	"github.com/philiphil/apiman/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
 	"github.com/philiphil/apiman/serializer/format"
 	"strconv"

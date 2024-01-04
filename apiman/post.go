@@ -8,13 +8,17 @@ import (
 
 func (r *ApiRouter[T]) Post(c *gin.Context) {
 	entity := r.Orm.NewEntity()
-
-	if !router.UnserializeBodyAndMerge(c, &entity) {
+	if err := r.WritingCheck(c, &entity); err != nil {
+		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
 		return
 	}
 
-	err := r.Orm.Create(&entity)
-	if err != nil {
+	if err := router.UnserializeBodyAndMerge(c, &entity); err != nil {
+		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
+		return
+	}
+
+	if err := r.Orm.Create(&entity); err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"message": "Database issue"})
 		return
 	}

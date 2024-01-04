@@ -10,7 +10,7 @@ import (
 func (r *ApiRouter[T]) Head(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Param("id"))
 	if err != nil {
-		c.AbortWithStatusJSON(404, "Resource not found")
+		c.AbortWithStatusJSON(ErrNotFound.Code, ErrNotFound.Message)
 		return
 	}
 

@@ -14,7 +14,13 @@ func (r *ApiRouter[T]) Put(c *gin.Context) {
 		obj = &bfr
 	}
 
-	if !router.UnserializeBodyAndMerge(c, obj) {
+	if err = r.WritingCheck(c, obj); err != nil {
+		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
+		return
+	}
+
+	if err = router.UnserializeBodyAndMerge(c, obj); err != nil {
+		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
 		return
 	}
 

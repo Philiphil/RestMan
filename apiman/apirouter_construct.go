@@ -1,9 +1,10 @@
 package apiman
 
 import (
-	"github.com/philiphil/apiman/method"
+	"github.com/philiphil/apiman/apiman/method"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
+	"github.com/philiphil/apiman/security"
 	"reflect"
 	"strings"
 )
@@ -25,6 +26,9 @@ func NewApiRouter[T entity.IEntity](orm orm.ORM[T], methods []method.ApiMethodCo
 	} else {
 		router.Route = "/api/" + convertToSnakeCase(reflect.TypeOf(orm.NewEntity()).Name())
 	}
-
 	return router
+}
+
+func (r *ApiRouter[T]) AddFirewall(firewall ...security.Firewall) {
+	r.Firewalls = append(r.Firewalls, firewall...)
 }

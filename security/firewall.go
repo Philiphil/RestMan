@@ -2,6 +2,6 @@ package security
 
 import "github.com/gin-gonic/gin"
 
-type AuthProvider interface {
+type Firewall interface {
 	GetUser(c *gin.Context) (IUser, error)
 }

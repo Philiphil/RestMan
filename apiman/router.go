@@ -2,8 +2,8 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/method"
-	method_type "github.com/philiphil/apiman/method/MethodType"
+	"github.com/philiphil/apiman/apiman/method"
+	"github.com/philiphil/apiman/apiman/method/MethodType"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/security"
@@ -11,10 +11,10 @@ import (
 )
 
 type ApiRouter[T entity.IEntity] struct {
-	Orm          orm.ORM[T]
-	Methods      []method.ApiMethodConfiguration
-	AuthProvider security.AuthProvider
-	Route        string
+	Orm       orm.ORM[T]
+	Methods   []method.ApiMethodConfiguration
+	Firewalls []security.Firewall
+	Route     string
 }
 
 func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
@@ -33,10 +33,14 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 			router.PATCH(r.Route+"/:id", r.Patch)
 		case method_type.Delete:
 			router.DELETE(r.Route+"/:id", r.Delete)
-		case method_type.Undefined:
+		case method_type.Head:
+			router.HEAD(r.Route+"/:id", r.Head)
+		case method_type.Options:
+			router.HEAD(r.Route+"/:id", r.Options)
+			router.HEAD(r.Route, r.Options)
 		case method_type.Connect:
 		case method_type.Trace:
-		case method_type.Options:
+		case method_type.Undefined:
 		}
 	}
 	return
@@ -60,7 +64,8 @@ func convertToSnakeCase(input string) string {
 
 	return string(runes)
 }
-func (r ApiRouter[T]) GetMethodConfiguration(apiMethod method_type.ApiMethod) method.ApiMethodConfiguration {
+
+func (r *ApiRouter[T]) GetMethodConfiguration(apiMethod method_type.ApiMethod) method.ApiMethodConfiguration {
 	for _, method_ := range r.Methods {
 		if method_.Method == apiMethod {
 			return method_

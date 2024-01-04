@@ -1,6 +1,7 @@
 package security
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/orm/entity"
 )
 
@@ -9,9 +10,16 @@ type AnonymousUser struct {
 }
 
 func (t AnonymousUser) SetId(a any) entity.IEntity {
-	panic("implement me")
+	t.ID = entity.CastId(a)
+	return t
 }
 
 func (t AnonymousUser) GetId() entity.ID {
-	panic("implement me")
+	return t.ID
+}
+
+type AnonymousFirewall struct{}
+
+func (a AnonymousFirewall) GetUser(c *gin.Context) (IUser, error) {
+	return AnonymousUser{entity.ID(1)}, nil
 }
