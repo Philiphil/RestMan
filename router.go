@@ -2,8 +2,8 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/apiman/method"
-	"github.com/philiphil/apiman/apiman/method/MethodType"
+	"github.com/philiphil/apiman/method"
+	"github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/security"
@@ -22,7 +22,6 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 		switch method_.Method {
 		case method_type.Get:
 			router.GET(r.Route+"/:id", r.Get)
-			router.HEAD(r.Route+"/:id", r.Head)
 		case method_type.GetList:
 			router.GET(r.Route, r.GetList)
 		case method_type.Post:
@@ -36,8 +35,8 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 		case method_type.Head:
 			router.HEAD(r.Route+"/:id", r.Head)
 		case method_type.Options:
-			router.HEAD(r.Route+"/:id", r.Options)
-			router.HEAD(r.Route, r.Options)
+			router.OPTIONS(r.Route+"/:id", r.Options)
+			router.OPTIONS(r.Route, r.Options)
 		case method_type.Connect:
 		case method_type.Trace:
 		case method_type.Undefined:

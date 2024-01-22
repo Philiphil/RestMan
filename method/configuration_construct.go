@@ -1,8 +1,6 @@
 package method
 
-import (
-	"github.com/philiphil/apiman/apiman/method/MethodType"
-)
+import "github.com/philiphil/apiman/method/MethodType"
 
 func New() ApiMethodConfiguration {
 	return ApiMethodConfiguration{

@@ -2,6 +2,7 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/errors"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/router"
 )
@@ -15,12 +16,12 @@ func (r *ApiRouter[T]) Put(c *gin.Context) {
 	}
 
 	if err = r.WritingCheck(c, obj); err != nil {
-		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
 
 	if err = router.UnserializeBodyAndMerge(c, obj); err != nil {
-		c.AbortWithStatusJSON(err.(ApiError).Code, err.(ApiError).Message)
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
 
@@ -31,7 +32,7 @@ func (r *ApiRouter[T]) Put(c *gin.Context) {
 	convertedEntity, _ := cast.(T)
 	err = r.Orm.Update(&convertedEntity)
 	if err != nil {
-		c.AbortWithStatusJSON(500, "Database issue")
+		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 		return
 	}
 

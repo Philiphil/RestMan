@@ -2,6 +2,7 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/errors"
 	"github.com/philiphil/apiman/security"
 )
 
@@ -11,7 +12,7 @@ func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.IUser, error) {
 	for _, firewall := range r.Firewalls {
 		user, err = firewall.GetUser(c)
 		if err != nil { //problem
-			if err.(ApiError).Blocking {
+			if err.(errors.ApiError).Blocking {
 				return user, err
 			} else {
 				continue
@@ -32,7 +33,7 @@ func (r *ApiRouter[T]) ReadingCheck(c *gin.Context, object *T) error {
 	if ok {
 		auth := rr.GetReadingRights()
 		if !auth(user, *object) {
-			return ErrUnauthorized
+			return errors.ErrUnauthorized
 		}
 	}
 
@@ -48,7 +49,7 @@ func (r *ApiRouter[T]) WritingCheck(c *gin.Context, object *T) error {
 	if ok {
 		auth := rr.GetWritingRights()
 		if !auth(user, *object) {
-			return ErrUnauthorized
+			return errors.ErrUnauthorized
 		}
 	}
 

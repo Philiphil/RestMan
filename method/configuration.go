@@ -1,7 +1,7 @@
 package method
 
 import (
-	"github.com/philiphil/apiman/apiman/method/MethodType"
+	"github.com/philiphil/apiman/method/MethodType"
 )
 
 type ApiMethodConfiguration struct {

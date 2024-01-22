@@ -2,7 +2,8 @@ package apiman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/apiman/method/MethodType"
+	"github.com/philiphil/apiman/errors"
+	"github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
 	"github.com/philiphil/apiman/serializer/format"
 	"strconv"
@@ -46,7 +47,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	}
 	objects, err := r.Orm.GetAll()
 	if err != nil {
-		panic(err)
+		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 	}
 
 	c.Render(200,

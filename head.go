@@ -3,6 +3,7 @@ package apiman
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/apiman/errors"
 	"github.com/philiphil/apiman/serializer"
 	"github.com/philiphil/apiman/serializer/format"
 )
@@ -10,7 +11,7 @@ import (
 func (r *ApiRouter[T]) Head(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Param("id"))
 	if err != nil {
-		c.AbortWithStatusJSON(ErrNotFound.Code, ErrNotFound.Message)
+		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
 		return
 	}
 

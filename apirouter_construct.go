@@ -1,7 +1,7 @@
 package apiman
 
 import (
-	"github.com/philiphil/apiman/apiman/method"
+	"github.com/philiphil/apiman/method"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/security"
