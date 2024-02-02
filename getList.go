@@ -13,7 +13,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	pagination, _ := strconv.ParseBool(c.DefaultQuery("pagination", "false"))
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	page--
-	itemPerPage, _ := strconv.Atoi(c.DefaultQuery("itemPerPage", "100"))
+	itemPerPage, _ := strconv.Atoi(c.DefaultQuery("itemsPerPage", "100"))
 
 	if !pagination {
 		itemPerPage = 0

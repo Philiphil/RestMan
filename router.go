@@ -24,6 +24,7 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 			router.GET(r.Route+"/:id", r.Get)
 		case method_type.GetList:
 			router.GET(r.Route, r.GetList)
+			router.GET(r.Route+".jsonld", r.GetList)
 		case method_type.Post:
 			router.POST(r.Route, r.Post)
 		case method_type.Put:
