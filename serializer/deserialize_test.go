@@ -2,7 +2,7 @@ package serializer
 
 import (
 	"fmt"
-	"github.com/philiphil/apiman/serializer/format"
+	"github.com/philiphil/apiman/format"
 	"reflect"
 	"testing"
 )

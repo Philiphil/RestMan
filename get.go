@@ -5,7 +5,6 @@ import (
 	"github.com/philiphil/apiman/errors"
 	"github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
-	"github.com/philiphil/apiman/serializer/format"
 )
 
 func (r *ApiRouter[T]) Get(c *gin.Context) {
@@ -22,9 +21,15 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		return
 	}
 
+	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accepted"))
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
 	c.Render(200, router.SerializerRenderer{
 		Data:   object,
-		Format: format.JSON,
+		Format: responseFormat,
 		Groups: config.SerializationGroups,
 	})
 }

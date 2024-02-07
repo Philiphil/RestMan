@@ -1,8 +1,8 @@
 package router
 
 import (
+	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/serializer"
-	"github.com/philiphil/apiman/serializer/format"
 	"net/http"
 )
 

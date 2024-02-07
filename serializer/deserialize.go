@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/philiphil/apiman/serializer/format"
+	"github.com/philiphil/apiman/format"
 	"reflect"
 	"strings"
 )

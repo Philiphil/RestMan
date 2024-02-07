@@ -3,9 +3,9 @@ package apiman
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/errors"
+	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
-	"github.com/philiphil/apiman/serializer/format"
 	"strconv"
 )
 

@@ -16,6 +16,7 @@ var (
 	ErrNotFound      = ApiError{http.StatusNotFound, "Not found", true}
 	ErrUnauthorized  = ApiError{http.StatusUnauthorized, "Unauthorized", true}
 	ErrBadSchema     = ApiError{http.StatusBadRequest, "Bad schema", true}
+	ErrNotAcceptable = ApiError{http.StatusNotAcceptable, "Not Acceptable", true}
 	ErrBadFormat     = ApiError{http.StatusBadRequest, "Could not parse format", true}
 	ErrDatabaseIssue = ApiError{http.StatusInternalServerError, "Database issue", true}
 	ErrUnsupported   = ApiError{http.StatusTeapot, "Unsupported", false}

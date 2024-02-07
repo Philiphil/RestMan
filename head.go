@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/errors"
+	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/serializer"
-	"github.com/philiphil/apiman/serializer/format"
 )
 
 func (r *ApiRouter[T]) Head(c *gin.Context) {

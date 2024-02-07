@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"context"
+	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/orm/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -17,6 +18,16 @@ type Product struct {
 	Name        string
 	Weight      uint
 	IsAvailable bool
+}
+
+func (p Product) SetId(a any) entity.IEntity {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Product) GetId() entity.ID {
+	//TODO implement me
+	panic("implement me")
 }
 
 // ProductGorm is DTO used to map Product entity to database
@@ -127,7 +138,7 @@ func TestGormRepository_DeleteByID(t *testing.T) {
 
 func TestGormRepository_Find(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := repository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -136,15 +147,15 @@ func TestGormRepository_Find(t *testing.T) {
 		Weight:      100,
 		IsAvailable: true,
 	}
-	repository.Insert(ctx, &product)
+	newRepository.Insert(ctx, &product)
 	product2 := Product{
 		ID:          2,
 		Name:        "product2",
 		Weight:      50,
 		IsAvailable: true,
 	}
-	repository.Insert(ctx, &product2)
-	many, err := repository.Find(ctx, repository.GreaterOrEqual("weight", 50))
+	newRepository.Insert(ctx, &product2)
+	many, err := newRepository.Find(ctx, repository.GreaterOrEqual("weight", 50))
 	if err != nil {
 		panic(err)
 	}
@@ -152,14 +163,14 @@ func TestGormRepository_Find(t *testing.T) {
 		panic("should be 2")
 	}
 
-	repository.Insert(ctx, &Product{
+	newRepository.Insert(ctx, &Product{
 		ID:          3,
 		Name:        "product3",
 		Weight:      250,
 		IsAvailable: false,
 	})
 
-	many, err = repository.Find(ctx, repository.GreaterOrEqual("weight", 90))
+	many, err = newRepository.Find(ctx, repository.GreaterOrEqual("weight", 90))
 	if err != nil {
 		panic(err)
 	}
@@ -167,7 +178,7 @@ func TestGormRepository_Find(t *testing.T) {
 		panic("should be 2")
 	}
 
-	many, err = repository.Find(ctx, repository.And(
+	many, err = newRepository.Find(ctx, repository.And(
 		repository.GreaterOrEqual("weight", 90),
 		repository.Equal("is_available", true)),
 	)
@@ -181,10 +192,10 @@ func TestGormRepository_Find(t *testing.T) {
 
 func TestGormRepository_NewInstanceEntity(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := repository.NewRepository[ProductGorm, Product](db)
 
 	entity := Product{}
-	if repository.NewEntity() != entity {
+	if newRepository.NewEntity() != entity {
 		panic("should be empty entity")
 	}
 }

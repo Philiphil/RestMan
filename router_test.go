@@ -1,15 +1,11 @@
 package apiman
 
 import (
-	"github.com/philiphil/apiman/method"
-	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/orm/repository"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"os"
-	"testing"
 )
 
 type Test1 struct {
@@ -32,7 +28,7 @@ func (t Test1) FromEntity(entity Test1) any {
 	return entity
 }
 
-func GetDB() *gorm.DB {
+func getDB() *gorm.DB {
 	db, err := gorm.Open(mysql.Open(os.Getenv("DSN")), &gorm.Config{
 		CreateBatchSize: 1000,
 	})
@@ -47,10 +43,12 @@ func GetDB() *gorm.DB {
 	return db
 }
 
+/*
 func TestMain(m *testing.M) {
 	test_ := NewApiRouter[Test1](
-		*orm.NewORM[Test1](repository.NewRepository[Test1, Test1](GetDB())),
+		*orm.NewORM[Test1](repository.NewRepository[Test1, Test1](getDB())),
 		method.DefaultApiMethods(),
 	)
 	_ = test_
 }
+*/
