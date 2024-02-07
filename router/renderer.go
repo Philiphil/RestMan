@@ -24,6 +24,7 @@ func (r SerializerRenderer) Render(w http.ResponseWriter) (err error) {
 	s := serializer.NewSerializer(r.Format)
 	str, err := s.Serialize(r.Data, r.Groups...)
 	if err != nil {
+		panic(err)
 		return err
 	}
 	_, err = w.Write([]byte(str))

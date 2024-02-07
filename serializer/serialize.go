@@ -15,10 +15,10 @@ func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 	switch s.Format {
 	case format.JSON:
 		return s.serializeJSON(obj, groups...)
-	case format.XML:
-		return s.serializeXML(obj, groups...)
-	case format.CSV:
-		return s.serializeCSV(obj, groups...)
+	//case format.XML:
+	//	return s.serializeXML(obj, groups...)
+	//case format.CSV:
+	//	return s.serializeCSV(obj, groups...)
 	default:
 		return "", fmt.Errorf("Unsupported format: %s", s.Format)
 	}
@@ -36,7 +36,8 @@ func (s *Serializer) serializeJSON(obj any, groups ...string) (string, error) {
 
 func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
 	data := filter.FilterByGroups(obj, groups...)
-	xmlBytes, err := xml.MarshalIndent(data, "", "  ")
+	_ = data
+	xmlBytes, err := xml.Marshal(data)
 	if err != nil {
 		return "", err
 	}

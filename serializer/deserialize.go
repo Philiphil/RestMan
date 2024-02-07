@@ -3,7 +3,6 @@ package serializer
 import (
 	"encoding/csv"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"github.com/philiphil/apiman/format"
 	"reflect"
@@ -17,10 +16,10 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 	switch s.Format {
 	case format.JSON:
 		return json.Unmarshal([]byte(data), obj)
-	case format.XML:
-		return xml.Unmarshal([]byte(data), obj)
-	case format.CSV:
-		return s.deserializeCSV(data, obj)
+	//case format.XML:
+	//	return xml.Unmarshal([]byte(data), obj)
+	//case format.CSV:
+	//	return s.deserializeCSV(data, obj)
 	default:
 		return fmt.Errorf("Unsupported format: %s", s.Format)
 	}

@@ -5,7 +5,7 @@ type Format string
 const (
 	Undefined Format = "undefined"
 	Unknown          = "unknown"
-	JSON             = "JSON"
-	XML              = "XML"
-	CSV              = "CSV"
+	JSON             = "application/json"
+	XML              = "text/xml"
+	CSV              = "application/csv"
 )

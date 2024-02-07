@@ -50,10 +50,16 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 	}
 
+	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accepted"))
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
 	c.Render(200,
 		router.SerializerRenderer{
 			Data:   objects,
-			Format: format.JSON,
+			Format: responseFormat,
 			Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,
 		})
 }

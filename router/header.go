@@ -1,4 +1,4 @@
-package apiman
+package router
 
 import (
 	"github.com/philiphil/apiman/errors"
@@ -47,6 +47,8 @@ func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 		sortedMediaTypes[i] = mediaType.Type
 		if f := ParseTypeFromString(mediaType.Type); f != format.Undefined && f != format.Unknown {
 			return f, nil
+		} else if mediaType.Type == "*/*" {
+			return format.JSON, nil
 		}
 	} //default
 	return format.Undefined, errors.ErrNotAcceptable

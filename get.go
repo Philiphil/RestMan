@@ -3,7 +3,6 @@ package apiman
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/router"
 )
@@ -22,9 +21,15 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		return
 	}
 
+	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accept"))
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
 	c.Render(200, router.SerializerRenderer{
 		Data:   object,
-		Format: format.JSON,
+		Format: responseFormat,
 		Groups: config.SerializationGroups,
 	})
 }
