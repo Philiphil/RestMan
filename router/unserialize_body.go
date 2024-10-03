@@ -2,22 +2,22 @@ package router
 
 import (
 	"bytes"
+	"io"
+
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/serializer"
-	"io"
 )
 
 func UnserializeBody[T any](c *gin.Context, e *T) error {
-	jsonData, err := io.ReadAll(c.Request.Body)
-	bodyReader := bytes.NewReader(jsonData)
+	serializedData, err := io.ReadAll(c.Request.Body)
+	bodyReader := bytes.NewReader(serializedData)
 	c.Request.Body = io.NopCloser(bodyReader)
 	if err != nil {
 		return errors.ErrBadFormat
 	}
-	serializer_ := serializer.NewSerializer(format.JSON)
-	err = serializer_.Deserialize(string(jsonData), e)
+	serializer_ := serializer.NewSerializer(ParseTypeFromString(c.GetHeader("Content-type")))
+	err = serializer_.Deserialize(string(serializedData), e)
 	if err != nil {
 		return errors.ErrBadFormat
 	}
@@ -25,14 +25,14 @@ func UnserializeBody[T any](c *gin.Context, e *T) error {
 }
 
 func UnserializeBodyAndMerge[T any](c *gin.Context, e *T) error {
-	jsonData, err := io.ReadAll(c.Request.Body)
-	bodyReader := bytes.NewReader(jsonData)
+	serializedData, err := io.ReadAll(c.Request.Body)
+	bodyReader := bytes.NewReader(serializedData)
 	c.Request.Body = io.NopCloser(bodyReader)
 	if err != nil {
 		return errors.ErrBadFormat
 	}
-	serializer_ := serializer.NewSerializer(format.JSON)
-	err = serializer_.DeserializeAndMerge(string(jsonData), e)
+	serializer_ := serializer.NewSerializer(ParseTypeFromString(c.GetHeader("Content-type")))
+	err = serializer_.DeserializeAndMerge(string(serializedData), e)
 	if err != nil {
 		return errors.ErrBadFormat
 	}

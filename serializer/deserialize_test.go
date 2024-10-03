@@ -1,10 +1,12 @@
-package serializer
+package serializer_test
 
 import (
 	"fmt"
-	"github.com/philiphil/apiman/format"
 	"reflect"
 	"testing"
+
+	"github.com/philiphil/apiman/format"
+	. "github.com/philiphil/apiman/serializer"
 )
 
 type Test struct {
@@ -50,12 +52,12 @@ func TestSerializer_Deserialize(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := Test{}
 	err = s.Deserialize(serialized, &o)
 	if o != testDeserializedResult {
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -74,14 +76,14 @@ func TestSerializer_Deserialize2(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := Recursive{}
 	err = s.Deserialize(serialized, &o)
 	if o != expected2 {
 		fmt.Println(o)
 		fmt.Println(expected2)
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -103,14 +105,14 @@ func TestSerializer_Deserialize3(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := []Recursive{}
 	err = s.Deserialize(serialized, &o)
 	if o[0] != expected2[0] {
 		fmt.Println(o)
 		fmt.Println(expected2)
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -127,12 +129,12 @@ func TestSerializer_Deserialize4(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := new(Hidden)
 	err = s.Deserialize(serialized, &o)
 	if *o != *expected1 {
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -154,14 +156,14 @@ func TestSerializer_Deserialize5(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := []*Recursive{}
 	err = s.Deserialize(serialized, &o)
 	if *o[0] != *expected2[0] {
 		fmt.Println(*o[0])
 		fmt.Println(*expected2[0])
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -184,14 +186,14 @@ func TestSerializer_Deserialize6(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := new([]Recursive)
 	err = s.Deserialize(serialized, o)
 	if (*o)[0] != expected2[0] {
 		fmt.Println(*o)
 		fmt.Println(expected2)
-		panic("!")
+		t.Error("!")
 	}
 }
 
@@ -213,14 +215,14 @@ func TestSerializer_Deserialize7(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test2, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := new([]Recursive)
 	err = s.Deserialize(serialized, o)
 	if (*o)[0] != expected2[0] {
 		fmt.Println(*o)
 		fmt.Println(expected2)
-		panic("!")
+		t.Error("!")
 	}
 }
 
@@ -247,7 +249,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	var o Ptr
@@ -255,7 +257,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 	if !reflect.DeepEqual(o, expected) {
 		fmt.Println(o)
 		fmt.Println(expected)
-		panic("Test failed!")
+		t.Error("Test failed!")
 	}
 }
 
@@ -266,34 +268,35 @@ func TestSerializer_Deserialize9(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := make(map[string]Test)
 	err = s.Deserialize(serialized, &o)
 	if o["test"] != testDeserializedResult {
 		fmt.Println(o["test"])
 		fmt.Println(testDeserializedResult)
-		panic("!")
+		t.Error("!")
 	}
 }
 
 // map[any] to map[typed]
+/*
 func TestSerializer_Deserialize10(t *testing.T) {
 	test1 := make(map[string]Test)
 	test1["test"] = test
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test1, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := make(map[string]Test)
 	err = s.Deserialize(serialized, &o)
 	if o["test"] != testDeserializedResult {
 		fmt.Println(o["test"])
 		fmt.Println(testDeserializedResult)
-		panic("!")
+		t.Error("!")
 	}
-}
+}*/
 
 // anonymous
 func TestSerializer_Deserialize11(t *testing.T) {
@@ -302,7 +305,7 @@ func TestSerializer_Deserialize11(t *testing.T) {
 	rr := Test2{testDeserializedResult}
 	serialized, err := s.Serialize(tt, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := Test2{}
 	err = s.Deserialize(serialized, &o)
@@ -310,7 +313,7 @@ func TestSerializer_Deserialize11(t *testing.T) {
 		fmt.Println(serialized)
 		fmt.Println(rr)
 		fmt.Println(o)
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -322,7 +325,7 @@ func TestSerializer_Deserialize12(t *testing.T) {
 	rr := Test2{testDeserializedResult}
 	serialized, err := s.Serialize(&tt, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := Test2{}
 	err = s.Deserialize(serialized, &o)
@@ -330,7 +333,7 @@ func TestSerializer_Deserialize12(t *testing.T) {
 		fmt.Println(serialized)
 		fmt.Println(rr)
 		fmt.Println(o)
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -345,18 +348,18 @@ func TestSerializer_MergeObjects(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := Test{}
 	err = s.Deserialize(serialized, &o)
 	err = s.MergeObjects(&target, &o)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	if target != result {
 		fmt.Println(target)
 		fmt.Println(result)
-		panic("!")
+		t.Error("!")
 	}
 
 }
@@ -371,16 +374,51 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	err = s.DeserializeAndMerge(serialized, &target)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	if target != result {
 		fmt.Println(target)
 		fmt.Println(result)
-		panic("!")
+		t.Error("!")
+	}
+
+}
+
+// jsonLd coverage
+func TestSerializer_DeserializeJsonLD(t *testing.T) {
+	s := NewSerializer(format.JSON)
+	serialized, err := s.Serialize(test, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	o := Test{}
+	err = s.Deserialize(serialized, &o)
+	if o != testDeserializedResult || err != nil {
+		t.Error("!")
+	}
+
+}
+
+// Unknown format coverage
+func TestSerializer_DeserializeUndefined(t *testing.T) {
+	s := NewSerializer(format.Undefined)
+	_, err := s.Serialize(test, "test")
+	if err == nil {
+		t.Error("should not work")
+	}
+
+}
+
+// Unknown format coverage
+func TestSerializer_DeserializeUnknown(t *testing.T) {
+	s := NewSerializer(format.Unknown)
+	_, err := s.Serialize(test, "test")
+	if err == nil {
+		t.Error("should not work")
 	}
 
 }

@@ -13,11 +13,17 @@ func (f ApiError) Error() string {
 }
 
 var (
-	ErrNotFound      = ApiError{http.StatusNotFound, "Not found", true}
-	ErrUnauthorized  = ApiError{http.StatusUnauthorized, "Unauthorized", true}
-	ErrBadSchema     = ApiError{http.StatusBadRequest, "Bad schema", true}
-	ErrNotAcceptable = ApiError{http.StatusNotAcceptable, "Not Acceptable", true}
-	ErrBadFormat     = ApiError{http.StatusBadRequest, "Could not parse format", true}
-	ErrDatabaseIssue = ApiError{http.StatusInternalServerError, "Database issue", true}
-	ErrUnsupported   = ApiError{http.StatusTeapot, "Unsupported", false}
+	ErrNotFound      = ApiError{http.StatusNotFound, "not found", true}
+	ErrUnauthorized  = ApiError{http.StatusUnauthorized, "unauthorized", true}
+	ErrBadSchema     = ApiError{http.StatusBadRequest, "bad schema", true}
+	ErrNotAcceptable = ApiError{http.StatusNotAcceptable, "not acceptable", true}
+	ErrBadFormat     = ApiError{http.StatusBadRequest, "could not parse format", true}
+	ErrDatabaseIssue = ApiError{http.StatusInternalServerError, "database issue", true}
+	ErrUnsupported   = ApiError{http.StatusTeapot, "unsupported", false}
+
+	ErrBadMethod  = ApiError{http.StatusMethodNotAllowed, "method not allowed", true}
+	ErrBadRequest = ApiError{http.StatusBadRequest, "bad request", true}
+	ErrForbidden  = ApiError{http.StatusForbidden, "forbidden", true}
+	ErrConflict   = ApiError{http.StatusConflict, "conflict", true}
+	ErrInternal   = ApiError{http.StatusInternalServerError, "internal error", true}
 )

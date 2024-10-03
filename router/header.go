@@ -1,11 +1,12 @@
 package router
 
 import (
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/format"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/philiphil/apiman/errors"
+	"github.com/philiphil/apiman/format"
 )
 
 type MediaType struct {
@@ -57,6 +58,9 @@ func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 func ParseTypeFromString(str string) format.Format {
 	if str == "" {
 		return format.Undefined
+	}
+	if strings.Contains(strings.ToLower(str), "ld+json") {
+		return format.JSONLD
 	}
 	if strings.Contains(strings.ToLower(str), "json") {
 		return format.JSON

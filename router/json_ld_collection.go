@@ -16,11 +16,13 @@ func JsonldCollection[T any](items []T, currentUrl string, currentPage int, para
 
 	url := currentUrl[:strings.Index(currentUrl, "?")+1]
 	m["@id"] = url[:len(url)-1]
+	stringifyParam := ""
 	for k, v := range params {
 		if k != "page" {
-			url += k + "=" + v + "&"
+			stringifyParam += k + "=" + v + "&"
 		}
 	}
+	url += stringifyParam
 
 	if currentPage != 1 { //dont bother to cast
 		view["hydra:previous"] = url + "page=" + strconv.Itoa(currentPage-1)

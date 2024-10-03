@@ -2,6 +2,7 @@ package apiman
 
 import (
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/errors"
 	method_type "github.com/philiphil/apiman/method/MethodType"
@@ -23,6 +24,10 @@ func (r *ApiRouter[T]) Head(c *gin.Context) {
 	s := serializer.NewSerializer(responseFormat)
 
 	str, err := s.Serialize(object, r.GetMethodConfiguration(method_type.Get).SerializationGroups...)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		return
+	}
 	c.Header("Content-Type", string(responseFormat))
 	c.Header("Content-Length", fmt.Sprint(len(str)))
 	c.Status(200)

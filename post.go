@@ -23,7 +23,7 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 		return
 	}
-	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accepted"))
+	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
