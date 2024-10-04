@@ -1,13 +1,14 @@
 package apiman
 
 import (
+	"unicode"
+
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/apiman/method"
-	"github.com/philiphil/apiman/method/MethodType"
+	method_type "github.com/philiphil/apiman/method/MethodType"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/security"
-	"unicode"
 )
 
 type ApiRouter[T entity.IEntity] struct {
@@ -43,7 +44,6 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 		case method_type.Undefined:
 		}
 	}
-	return
 }
 
 func convertToSnakeCase(input string) string {

@@ -1,12 +1,13 @@
 package apiman
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/philiphil/apiman/method"
 	"github.com/philiphil/apiman/orm"
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/security"
-	"reflect"
-	"strings"
 )
 
 func NewApiRouter[T entity.IEntity](orm orm.ORM[T], methods []method.ApiMethodConfiguration, route ...string) *ApiRouter[T] {
@@ -20,9 +21,8 @@ func NewApiRouter[T entity.IEntity](orm orm.ORM[T], methods []method.ApiMethodCo
 		} else {
 			router.Route = route[0]
 		}
-		if !strings.HasSuffix(router.Route, "/") {
-			router.Route = strings.TrimSuffix(router.Route, "/")
-		}
+		router.Route = strings.TrimSuffix(router.Route, "/")
+
 	} else {
 		router.Route = "/api/" + convertToSnakeCase(reflect.TypeOf(orm.NewEntity()).Name())
 	}

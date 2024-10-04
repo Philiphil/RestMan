@@ -1,9 +1,10 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/philiphil/apiman/format"
 	"github.com/philiphil/apiman/serializer"
-	"net/http"
 )
 
 type SerializerRenderer struct {
@@ -13,9 +14,10 @@ type SerializerRenderer struct {
 }
 
 var (
-	jsonContentType = []string{"application/json; charset=utf-8"}
-	xmlContentType  = []string{"application/xml; charset=utf-8"}
-	csvContentType  = []string{"text/csv"}
+	jsonContentType   = []string{"application/json; charset=utf-8"}
+	jsonldContentType = []string{"application/ld-json; charset=utf-8"}
+	//xmlContentType    = []string{"application/xml; charset=utf-8"}
+	//csvContentType    = []string{"text/csv"}
 )
 
 // Render
@@ -25,7 +27,6 @@ func (r SerializerRenderer) Render(w http.ResponseWriter) (err error) {
 	str, err := s.Serialize(r.Data, r.Groups...)
 	if err != nil {
 		panic(err)
-		return err
 	}
 	_, err = w.Write([]byte(str))
 	return err
@@ -36,10 +37,12 @@ func (r SerializerRenderer) WriteContentType(w http.ResponseWriter) {
 	switch r.Format {
 	case format.JSON:
 		writeContentType(w, jsonContentType)
+	case format.JSONLD:
+		writeContentType(w, jsonldContentType)
 	case format.XML:
-		writeContentType(w, xmlContentType)
+		//	writeContentType(w, xmlContentType)
 	case format.CSV:
-		writeContentType(w, csvContentType)
+		//	writeContentType(w, csvContentType)
 	}
 }
 

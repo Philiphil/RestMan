@@ -2,14 +2,15 @@ package repository_test
 
 import (
 	"context"
+	"log"
+	"os"
+	"testing"
+
 	"github.com/philiphil/apiman/orm/entity"
 	"github.com/philiphil/apiman/orm/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"os"
-	"testing"
 )
 
 // Product is a domain entity
@@ -91,8 +92,30 @@ func TestGormRepository_Insert(t *testing.T) {
 	}
 	err := repository.Insert(ctx, &product)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
+
+	product2 := Product{
+		Name:        "product1",
+		Weight:      100,
+		IsAvailable: true,
+	}
+	err = repository.Insert(ctx, &product2)
+	if err != nil {
+		t.Error(err)
+	}
+
+	product3 := Product{
+		ID:          8,
+		Name:        "product1",
+		Weight:      100,
+		IsAvailable: true,
+	}
+	err = repository.Insert(ctx, &product3)
+	if err == nil {
+		t.Error("should not insert")
+	}
+
 }
 
 func TestGormRepository_FindByID(t *testing.T) {
@@ -103,7 +126,7 @@ func TestGormRepository_FindByID(t *testing.T) {
 	_, err := repository.FindByID(ctx, 8)
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 }
 
@@ -115,10 +138,33 @@ func TestGormRepository_Count(t *testing.T) {
 	nb, err := repository.Count(ctx)
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
-	if nb != 1 {
-		panic("not good count")
+	if nb != 2 {
+		t.Error("not good count")
+	}
+}
+
+func TestGormRepository_Update(t *testing.T) {
+	db, _ := getDB()
+	repository := repository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	product, err := repository.FindByID(ctx, 8)
+	if err != nil {
+		t.Error(err)
+	}
+	product.Name = "product2"
+	err = repository.Update(ctx, &product)
+	if err != nil {
+		t.Error(err)
+	}
+	product2, err := repository.FindByID(ctx, 8)
+	if err != nil {
+		t.Error(err)
+	}
+	if product2.Name != "product2" {
+		t.Error("not updated")
 	}
 }
 
@@ -128,11 +174,11 @@ func TestGormRepository_DeleteByID(t *testing.T) {
 	ctx := context.Background()
 	err := repository.DeleteByID(ctx, 8)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	_, err = repository.FindByID(ctx, 8)
 	if err == nil {
-		panic("supposed to be deleted")
+		t.Error("supposed to be deleted")
 	}
 }
 
@@ -157,10 +203,10 @@ func TestGormRepository_Find(t *testing.T) {
 	newRepository.Insert(ctx, &product2)
 	many, err := newRepository.Find(ctx, repository.GreaterOrEqual("weight", 50))
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
-	if len(many) != 2 {
-		panic("should be 2")
+	if len(many) != 3 {
+		t.Error(len(many))
 	}
 
 	newRepository.Insert(ctx, &Product{
@@ -172,10 +218,10 @@ func TestGormRepository_Find(t *testing.T) {
 
 	many, err = newRepository.Find(ctx, repository.GreaterOrEqual("weight", 90))
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
-	if len(many) != 2 {
-		panic("should be 2")
+	if len(many) != 3 {
+		t.Error("should be 3")
 	}
 
 	many, err = newRepository.Find(ctx, repository.And(
@@ -183,10 +229,10 @@ func TestGormRepository_Find(t *testing.T) {
 		repository.Equal("is_available", true)),
 	)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
-	if len(many) != 1 {
-		panic("should be 1")
+	if len(many) != 2 {
+		t.Error("should be 1")
 	}
 }
 
@@ -196,13 +242,40 @@ func TestGormRepository_NewInstanceEntity(t *testing.T) {
 
 	entity := Product{}
 	if newRepository.NewEntity() != entity {
-		panic("should be empty entity")
+		t.Error("should be empty entity")
+	}
+}
+
+func TestGormRepository_Delete(t *testing.T) {
+	db, _ := getDB()
+	repository := repository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	product := Product{
+		ID:          8,
+		Name:        "product1",
+		Weight:      100,
+		IsAvailable: true,
+	}
+	err := repository.Insert(ctx, &product)
+	if err != nil {
+		t.Error(err)
+	}
+	err = repository.Delete(ctx, &product)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGormRepository_GetDB(t *testing.T) {
+	db, _ := getDB()
+	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	if newRepository.GetDB() != db {
+		t.Error("should be equal")
 	}
 }
 
 /*
 TODO
-Delete (by item)
-Update
 Find (with sql cond)
 */

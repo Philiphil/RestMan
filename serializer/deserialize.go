@@ -4,9 +4,10 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/philiphil/apiman/format"
 	"reflect"
 	"strings"
+
+	"github.com/philiphil/apiman/format"
 )
 
 func (s *Serializer) Deserialize(data string, obj any) error {
@@ -14,6 +15,8 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 		return fmt.Errorf("object must be pointer")
 	}
 	switch s.Format {
+	case format.JSONLD:
+		return json.Unmarshal([]byte(data), obj)
 	case format.JSON:
 		return json.Unmarshal([]byte(data), obj)
 	//case format.XML:
@@ -21,7 +24,7 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 	//case format.CSV:
 	//	return s.deserializeCSV(data, obj)
 	default:
-		return fmt.Errorf("Unsupported format: %s", s.Format)
+		return fmt.Errorf("unsupported format: %s", s.Format)
 	}
 }
 
@@ -97,7 +100,7 @@ func isPointer(v interface{}) bool {
 func (s *Serializer) deserializeCSV(data string, obj any) error {
 	value := reflect.ValueOf(obj)
 	if value.Kind() != reflect.Ptr || value.IsNil() {
-		return fmt.Errorf("Invalid object type for CSV deserialization")
+		return fmt.Errorf("invalid object type for CSV deserialization")
 	}
 
 	reader := csv.NewReader(strings.NewReader(data))

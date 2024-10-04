@@ -5,22 +5,25 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/philiphil/apiman/format"
-	"github.com/philiphil/apiman/serializer/filter"
 	"reflect"
 	"strings"
+
+	"github.com/philiphil/apiman/format"
+	"github.com/philiphil/apiman/serializer/filter"
 )
 
 func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 	switch s.Format {
 	case format.JSON:
 		return s.serializeJSON(obj, groups...)
+	case format.JSONLD:
+		return s.serializeJSON(obj, groups...)
 	//case format.XML:
 	//	return s.serializeXML(obj, groups...)
 	//case format.CSV:
 	//	return s.serializeCSV(obj, groups...)
 	default:
-		return "", fmt.Errorf("Unsupported format: %s", s.Format)
+		return "", fmt.Errorf("unsupported format: %s", s.Format)
 	}
 }
 
@@ -49,7 +52,7 @@ func (s *Serializer) serializeCSV(obj any, groups ...string) (string, error) {
 
 	value := reflect.ValueOf(data)
 	if value.Kind() != reflect.Slice {
-		return "", fmt.Errorf("Invalid object type for CSV serialization")
+		return "", fmt.Errorf("invalid object type for CSV serialization")
 	}
 
 	rows := make([][]string, 0)
