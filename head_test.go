@@ -1,7 +1,7 @@
 package apiman_test
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"net/http"
@@ -18,7 +18,7 @@ import (
 	"github.com/philiphil/apiman/serializer"
 )
 
-func TestApiRouter_Get(t *testing.T) {
+func TestApiRouter_Head(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
 	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
@@ -30,33 +30,37 @@ func TestApiRouter_Get(t *testing.T) {
 	)
 	test_.AllowRoutes(r)
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Get(context)
+	test_.Head(context)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("HEAD", "/api/test/1", nil)
+	req.Header.Set("Accept", "application/json")
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Error("should be not found")
+	}
 
 	entity := Test{entity.Entity{Id: 1}}
 	repo.Create(&entity)
-
-	w := httptest.NewRecorder()
-
-	req, _ := http.NewRequest("GET", "/api/test/1", nil)
+	//serializer mon truc en json et compare avec le json de la reponse
+	req, _ = http.NewRequest("HEAD", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		fmt.Println(w.Body.String())
-		t.Error("Failed to start server")
-	}
 	serializer := serializer.NewSerializer(format.JSON)
-	medium := Test{}
-	serializer.Deserialize(w.Body.String(), &medium)
-	if medium.Id != entity.Id {
-		t.Error("Expected entity with id " + fmt.Sprint(entity.Id) + " but got " + fmt.Sprint(medium.Id))
+	json, _ := serializer.Serialize(entity)
+	if w.Header().Get("Content-Type") != "application/json" {
+		t.Error("Content-Type should be application/json")
+	}
+	if w.Header().Get("Content-Length") != strconv.Itoa(len(json)) {
+		t.Error("Content-Length should be equal to the length of the json")
 	}
 
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/api/test/1", nil)
-	req.Header.Add("Accept", "Wrong")
+	req, _ = http.NewRequest("HEAD", "/api/test/1", nil)
+	req.Header.Set("Accept", "cac/esfes")
 	r.ServeHTTP(w, req)
-
 	if w.Code != http.StatusNotAcceptable {
-		t.Error("should not accept")
+		t.Error("should be not acceptable")
 	}
+
 }

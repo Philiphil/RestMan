@@ -1,6 +1,6 @@
 package method
 
-import "github.com/philiphil/apiman/method/MethodType"
+import method_type "github.com/philiphil/apiman/method/MethodType"
 
 func New() ApiMethodConfiguration {
 	return ApiMethodConfiguration{
@@ -25,6 +25,7 @@ func DefaultApiMethods() (d []ApiMethodConfiguration) {
 		Method(method_type.Put),
 		Method(method_type.Patch),
 		Method(method_type.Post),
+		Method(method_type.Delete),
 		Method(method_type.Options),
 		Method(method_type.Connect),
 		Method(method_type.Trace),

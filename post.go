@@ -28,6 +28,7 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
+
 	c.Render(201, router.SerializerRenderer{
 		Data:   &entity,
 		Format: responseFormat,

@@ -7,6 +7,12 @@ Built on top of Gin.
 Restman can be used with any ORM as long as it is provided an implementation of its Repository Interface.
 It come with its own GORM based Implementation, compatible with Entity/Model separation but also a more straighforward approach.
 
+## Features
+Fully working structure to REST route generation using GIN
+Out of the box GORM based ORM
+[WIP] Firewall implementation allowing to filter who can access/edit which data
+Symfony Serializer allowing serialization groups to control which property are allowed to be readed or wrote using the generated route
+
 
 TODO
 batch operation are down for now
