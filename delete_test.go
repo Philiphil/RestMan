@@ -18,6 +18,7 @@ import (
 
 func TestApiRouter_delete(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
+	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
 	repo := orm.NewORM[Test](repository.NewRepository[Test, Test](getDB()))
@@ -27,24 +28,24 @@ func TestApiRouter_delete(t *testing.T) {
 	)
 	test_.AllowRoutes(r)
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Get(context)
+	test_.Delete(context)
 
 	entity := Test{entity.Entity{Id: 1}}
 	repo.Create(&entity)
-
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest("GET", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
-
 	if w.Code != http.StatusOK {
-		fmt.Println(w.Body.String())
 		t.Error("Failed to start server")
 	}
 
+	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("DELETE", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
+	if w.Code != http.StatusNoContent {
+		fmt.Println(w.Body.String())
+		fmt.Println(w.Code)
 		t.Error("Failed to delete")
 	}
 
@@ -56,8 +57,6 @@ func TestApiRouter_delete(t *testing.T) {
 	req, _ = http.NewRequest("DELETE", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusNotFound {
-		fmt.Println(w.Code)
-		fmt.Println(w.Body.String())
 		t.Error("Failed to delete")
 	}
 

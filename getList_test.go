@@ -20,12 +20,14 @@ import (
 
 func SetupRouter() *gin.Engine {
 	r := gin.New()
+	gin.SetMode(gin.ReleaseMode)
 	r.Use(gin.Recovery())
 	return r
 }
 
 func TestApiRouter_GetList(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
+	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
 	repo := orm.NewORM[Test](repository.NewRepository[Test, Test](getDB()))
@@ -177,7 +179,6 @@ func TestApiRouter_GetListJSONLD(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Error("Failed to start server")
 	}
-	fmt.Println(w.Body.String())
 	serializer := serializer.NewSerializer(format.JSONLD)
 	entities := make(map[string]interface{}, 0)
 	serializer.Deserialize(w.Body.String(), &entities)

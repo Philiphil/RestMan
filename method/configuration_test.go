@@ -8,8 +8,8 @@ import (
 
 func TestDefaultApiMethods(t *testing.T) {
 	test := DefaultApiMethods()
-	if len(test) != 9 {
-		t.Error("DefaultApiMethods should return 9 methods")
+	if len(test) != 10 {
+		t.Error("DefaultApiMethods should return 10 methods")
 	}
 
 }
