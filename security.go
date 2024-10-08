@@ -1,9 +1,9 @@
-package apiman
+package restman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/security"
+	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/security"
 )
 
 func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.IUser, error) {

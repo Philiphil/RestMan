@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
-	"github.com/philiphil/apiman/orm/entity"
+	"sync"
+
+	"github.com/philiphil/restman/orm/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
-	"sync"
 )
 
 func NewRepository[M entity.Model[E], E entity.IEntity](db *gorm.DB) *GormRepository[M, E] {

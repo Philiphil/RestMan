@@ -1,4 +1,4 @@
-package apiman_test
+package restman_test
 
 import (
 	"fmt"
@@ -9,13 +9,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	. "github.com/philiphil/apiman"
-	"github.com/philiphil/apiman/format"
-	"github.com/philiphil/apiman/method"
-	"github.com/philiphil/apiman/orm"
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/orm/repository"
-	"github.com/philiphil/apiman/serializer"
+	. "github.com/philiphil/restman"
+	"github.com/philiphil/restman/format"
+	"github.com/philiphil/restman/method"
+	"github.com/philiphil/restman/orm"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/serializer"
 )
 
 func TestApiRouter_Get(t *testing.T) {

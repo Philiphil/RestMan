@@ -3,8 +3,8 @@ package router_test
 import (
 	"testing"
 
-	"github.com/philiphil/apiman/format"
-	. "github.com/philiphil/apiman/router"
+	"github.com/philiphil/restman/format"
+	. "github.com/philiphil/restman/router"
 )
 
 func TestParseAcceptHeader(t *testing.T) {

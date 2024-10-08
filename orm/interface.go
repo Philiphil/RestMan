@@ -2,8 +2,9 @@ package orm
 
 import (
 	"context"
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/orm/repository"
+
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/orm/repository"
 )
 
 type IRepository[M entity.Model[E], E entity.IEntity] interface {

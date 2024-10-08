@@ -3,7 +3,7 @@ package security_test
 import (
 	"testing"
 
-	. "github.com/philiphil/apiman/security"
+	. "github.com/philiphil/restman/security"
 )
 
 func TestNoAuthorizationRequired(t *testing.T) {

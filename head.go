@@ -1,13 +1,13 @@
-package apiman
+package restman
 
 import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	method_type "github.com/philiphil/apiman/method/MethodType"
-	"github.com/philiphil/apiman/router"
-	"github.com/philiphil/apiman/serializer"
+	"github.com/philiphil/restman/errors"
+	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/router"
+	"github.com/philiphil/restman/serializer"
 )
 
 func (r *ApiRouter[T]) Head(c *gin.Context) {

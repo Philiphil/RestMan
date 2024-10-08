@@ -112,7 +112,7 @@ func LessThan[T comparable](field string, value T) Specification {
 func LessOrEqual[T comparable](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
-		operator: ">=",
+		operator: "<=",
 		value:    value,
 	}
 }

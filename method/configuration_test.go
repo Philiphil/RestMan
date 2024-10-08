@@ -3,13 +3,13 @@ package method_test
 import (
 	"testing"
 
-	. "github.com/philiphil/apiman/method"
+	. "github.com/philiphil/restman/method"
 )
 
 func TestDefaultApiMethods(t *testing.T) {
 	test := DefaultApiMethods()
-	if len(test) != 10 {
-		t.Error("DefaultApiMethods should return 10 methods")
+	if len(test) != 8 {
+		t.Error("DefaultApiMethods should return 8 methods")
 	}
 
 }

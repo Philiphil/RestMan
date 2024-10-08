@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/serializer"
+	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/serializer"
 )
 
 func UnserializeBody[T any](c *gin.Context, e *T) error {

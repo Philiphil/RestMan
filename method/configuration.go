@@ -1,8 +1,6 @@
 package method
 
-import (
-	"github.com/philiphil/apiman/method/MethodType"
-)
+import method_type "github.com/philiphil/restman/method/MethodType"
 
 type ApiMethodConfiguration struct {
 	Method              method_type.ApiMethod

@@ -1,7 +1,7 @@
 package security
 
 import (
-	"github.com/philiphil/apiman/orm/entity"
+	"github.com/philiphil/restman/orm/entity"
 )
 
 func NoAuthorizationRequired(user IUser, object entity.IEntity) bool {

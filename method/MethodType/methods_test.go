@@ -3,7 +3,7 @@ package method_type_test
 import (
 	"testing"
 
-	. "github.com/philiphil/apiman/method/MethodType"
+	. "github.com/philiphil/restman/method/MethodType"
 )
 
 func TestApiMethod_String(t *testing.T) {

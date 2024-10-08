@@ -1,8 +1,8 @@
-package apiman
+package restman
 
 import (
 	"github.com/gin-gonic/gin"
-	method_type "github.com/philiphil/apiman/method/MethodType"
+	method_type "github.com/philiphil/restman/method/MethodType"
 )
 
 func (r *ApiRouter[T]) Options(c *gin.Context) {

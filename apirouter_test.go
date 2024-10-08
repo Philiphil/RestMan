@@ -1,15 +1,15 @@
-package apiman_test
+package restman_test
 
 import (
 	"fmt"
 	"testing"
 
-	. "github.com/philiphil/apiman"
-	"github.com/philiphil/apiman/method"
-	"github.com/philiphil/apiman/orm"
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/orm/repository"
-	"github.com/philiphil/apiman/security"
+	. "github.com/philiphil/restman"
+	"github.com/philiphil/restman/method"
+	"github.com/philiphil/restman/orm"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/security"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

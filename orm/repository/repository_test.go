@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/orm/repository"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/orm/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -273,6 +273,78 @@ func TestGormRepository_GetDB(t *testing.T) {
 	if newRepository.GetDB() != db {
 		t.Error("should be equal")
 	}
+}
+
+// until now we test only the GreatOrEqual and Equal
+// we will test the other conditions
+func TestGormRepository_Conditions(t *testing.T) {
+	db, _ := getDB()
+	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	many, err := newRepository.Find(ctx, repository.And(
+		repository.GreaterThan("weight", 100),
+		repository.Equal("is_available", false)),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(len(many))
+	}
+
+	many, err = newRepository.Find(ctx, repository.And(
+		repository.Not(repository.Equal("is_available", true)),
+	))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(len(many))
+	}
+
+	many, err = newRepository.Find(ctx, repository.And(
+		repository.LessThan("weight", 51),
+	))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(len(many))
+	}
+
+	many, err = newRepository.Find(ctx, repository.And(
+		repository.LessOrEqual("weight", 51),
+	))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(many)
+	}
+
+	many, err = newRepository.Find(ctx, repository.And(
+		repository.In("weight", []uint{50, 100}),
+	))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 3 {
+		t.Error(many)
+	}
+	many, err = newRepository.Find(ctx, repository.And(
+		repository.Or(
+			repository.Equal("weight", 50),
+			repository.Equal("weight", 100),
+		),
+	))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 3 {
+		t.Error(many)
+	}
+
 }
 
 /*

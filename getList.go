@@ -1,13 +1,13 @@
-package apiman
+package restman
 
 import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/format"
-	method_type "github.com/philiphil/apiman/method/MethodType"
-	"github.com/philiphil/apiman/router"
+	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/format"
+	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/router"
 )
 
 func (r *ApiRouter[T]) GetList(c *gin.Context) {

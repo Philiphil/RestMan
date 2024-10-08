@@ -1,10 +1,10 @@
-package apiman
+package restman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/router"
+	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/router"
 )
 
 func (r *ApiRouter[T]) Put(c *gin.Context) {

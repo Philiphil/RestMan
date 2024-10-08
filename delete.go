@@ -1,8 +1,8 @@
-package apiman
+package restman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
+	"github.com/philiphil/restman/errors"
 )
 
 func (r *ApiRouter[T]) Delete(c *gin.Context) {

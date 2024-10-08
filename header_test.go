@@ -1,11 +1,11 @@
-package apiman_test
+package restman_test
 
 import (
 	"testing"
 
-	_ "github.com/philiphil/apiman"
-	_ "github.com/philiphil/apiman/format"
-	"github.com/philiphil/apiman/router"
+	_ "github.com/philiphil/restman"
+	_ "github.com/philiphil/restman/format"
+	"github.com/philiphil/restman/router"
 )
 
 func TestParseAcceptHeader(t *testing.T) {

@@ -2,7 +2,7 @@ package security
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/orm/entity"
+	"github.com/philiphil/restman/orm/entity"
 )
 
 type AnonymousUser struct {

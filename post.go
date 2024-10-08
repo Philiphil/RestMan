@@ -1,10 +1,10 @@
-package apiman
+package restman
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/errors"
-	method_type "github.com/philiphil/apiman/method/MethodType"
-	"github.com/philiphil/apiman/router"
+	"github.com/philiphil/restman/errors"
+	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/router"
 )
 
 func (r *ApiRouter[T]) Post(c *gin.Context) {

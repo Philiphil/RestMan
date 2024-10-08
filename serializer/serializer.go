@@ -1,7 +1,7 @@
 package serializer
 
 import (
-	"github.com/philiphil/apiman/format"
+	"github.com/philiphil/restman/format"
 )
 
 // Serializer is the main serializer struct

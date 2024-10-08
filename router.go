@@ -1,16 +1,18 @@
-package apiman
+package restman
 
 import (
 	"unicode"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/apiman/method"
-	method_type "github.com/philiphil/apiman/method/MethodType"
-	"github.com/philiphil/apiman/orm"
-	"github.com/philiphil/apiman/orm/entity"
-	"github.com/philiphil/apiman/security"
+	"github.com/philiphil/restman/method"
+	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/orm"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/security"
 )
 
+// An ApiRouter is the main object to create a REST API
+// It is composed of an ORM, a list of Allow methods, a list of firewalls and a route
 type ApiRouter[T entity.IEntity] struct {
 	Orm       orm.ORM[T]
 	Methods   []method.ApiMethodConfiguration
@@ -46,7 +48,7 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 	}
 }
 
-func convertToSnakeCase(input string) string {
+func ConvertToSnakeCase(input string) string {
 	runes := []rune(input)
 	if len(runes) == 0 {
 		return ""

@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/philiphil/apiman/format"
+	"github.com/philiphil/restman/format"
 )
 
 func (s *Serializer) Deserialize(data string, obj any) error {

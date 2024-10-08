@@ -3,7 +3,7 @@ package errors_test
 import (
 	"testing"
 
-	. "github.com/philiphil/apiman/errors"
+	. "github.com/philiphil/restman/errors"
 )
 
 func TestError(t *testing.T) {

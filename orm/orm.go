@@ -3,7 +3,7 @@ package orm
 import (
 	"context"
 
-	"github.com/philiphil/apiman/orm/entity"
+	"github.com/philiphil/restman/orm/entity"
 )
 
 type ORM[T entity.IEntity] struct {

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/philiphil/apiman/format"
-	. "github.com/philiphil/apiman/serializer"
+	"github.com/philiphil/restman/format"
+	. "github.com/philiphil/restman/serializer"
 )
 
 type Test struct {
@@ -279,7 +279,7 @@ func TestSerializer_Deserialize9(t *testing.T) {
 	}
 }
 
-// map[any] to map[typed]
+// map[typed] to map[typed]
 /*
 func TestSerializer_Deserialize10(t *testing.T) {
 	test1 := make(map[string]Test)
@@ -291,13 +291,16 @@ func TestSerializer_Deserialize10(t *testing.T) {
 	}
 	o := make(map[string]Test)
 	err = s.Deserialize(serialized, &o)
-	if o["test"] != testDeserializedResult {
-		fmt.Println(o["test"])
-		fmt.Println(testDeserializedResult)
-		t.Error("!")
+	if err != nil {
+		t.Error(err)
 	}
-}*/
-
+	if o["test"] != testDeserializedResult {
+		fmt.Println("o[test]:", o["test"])
+		fmt.Println("Expected:", testDeserializedResult)
+		t.Error("Deserialization result does not match expected value")
+	}
+}
+*/
 // anonymous
 func TestSerializer_Deserialize11(t *testing.T) {
 	s := NewSerializer(format.JSON)
@@ -361,6 +364,16 @@ func TestSerializer_MergeObjects(t *testing.T) {
 		fmt.Println(result)
 		t.Error("!")
 	}
+	//object should be a pointer
+	err = s.MergeObjects(target, &o)
+	if err == nil {
+		t.Error(err)
+	}
+
+	err = s.MergeObjects(&target, o)
+	if err == nil {
+		t.Error(err)
+	}
 
 }
 
@@ -390,7 +403,7 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 
 // jsonLd coverage
 func TestSerializer_DeserializeJsonLD(t *testing.T) {
-	s := NewSerializer(format.JSON)
+	s := NewSerializer(format.JSONLD)
 	serialized, err := s.Serialize(test, "test")
 	if err != nil {
 		t.Error(err)
@@ -419,6 +432,21 @@ func TestSerializer_DeserializeUnknown(t *testing.T) {
 	_, err := s.Serialize(test, "test")
 	if err == nil {
 		t.Error("should not work")
+	}
+
+}
+
+// target object should be a pointer
+func TestSerializer_DeserializeStruct(t *testing.T) {
+	s := NewSerializer(format.JSON)
+	serialized, err := s.Serialize(test, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	o := Test{}
+	err = s.Deserialize(serialized, o)
+	if err == nil {
+		t.Error("!")
 	}
 
 }

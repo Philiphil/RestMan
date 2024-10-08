@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/philiphil/apiman/format"
-	"github.com/philiphil/apiman/serializer/filter"
+	"github.com/philiphil/restman/format"
+	"github.com/philiphil/restman/serializer/filter"
 )
 
 func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
@@ -18,10 +18,10 @@ func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 		return s.serializeJSON(obj, groups...)
 	case format.JSONLD:
 		return s.serializeJSON(obj, groups...)
-	//case format.XML:
-	//	return s.serializeXML(obj, groups...)
-	//case format.CSV:
-	//	return s.serializeCSV(obj, groups...)
+	case format.XML:
+		return s.serializeXML(obj, groups...)
+	case format.CSV:
+		return s.serializeCSV(obj, groups...)
 	default:
 		return "", fmt.Errorf("unsupported format: %s", s.Format)
 	}
@@ -39,7 +39,6 @@ func (s *Serializer) serializeJSON(obj any, groups ...string) (string, error) {
 
 func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
 	data := filter.FilterByGroups(obj, groups...)
-	_ = data
 	xmlBytes, err := xml.Marshal(data)
 	if err != nil {
 		return "", err

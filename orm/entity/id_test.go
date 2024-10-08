@@ -3,7 +3,7 @@ package entity_test
 import (
 	"testing"
 
-	. "github.com/philiphil/apiman/orm/entity"
+	. "github.com/philiphil/restman/orm/entity"
 )
 
 func TestCastId(t *testing.T) {
@@ -31,6 +31,11 @@ func TestCastId(t *testing.T) {
 			name: "4",
 			id:   ID(4),
 			want: 4,
+		},
+		{
+			name: "5",
+			id:   error(nil),
+			want: 0,
 		},
 	}
 	for _, tt := range tests {

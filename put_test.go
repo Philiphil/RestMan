@@ -1,4 +1,4 @@
-package apiman_test
+package restman_test
 
 import (
 	"bytes"
@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/philiphil/apiman"
-	"github.com/philiphil/apiman/method"
-	"github.com/philiphil/apiman/orm"
-	"github.com/philiphil/apiman/orm/repository"
+	. "github.com/philiphil/restman"
+	"github.com/philiphil/restman/method"
+	"github.com/philiphil/restman/orm"
+	"github.com/philiphil/restman/orm/repository"
 )
 
 func TestApiRouter_put(t *testing.T) {

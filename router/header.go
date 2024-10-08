@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/philiphil/apiman/errors"
-	"github.com/philiphil/apiman/format"
+	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/format"
 )
 
 type MediaType struct {

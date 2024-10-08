@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/philiphil/apiman/format"
-	"github.com/philiphil/apiman/serializer"
+	"github.com/philiphil/restman/format"
+	"github.com/philiphil/restman/serializer"
 )
 
 type SerializerRenderer struct {
