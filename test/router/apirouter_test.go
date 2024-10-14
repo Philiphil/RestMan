@@ -1,14 +1,14 @@
-package restman_test
+package router_test
 
 import (
 	"fmt"
 	"testing"
 
-	. "github.com/philiphil/restman"
 	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/orm/repository"
+	. "github.com/philiphil/restman/router"
 	"github.com/philiphil/restman/security"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

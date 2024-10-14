@@ -1,4 +1,4 @@
-package restman
+package router
 
 import (
 	"unicode"

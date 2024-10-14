@@ -56,7 +56,7 @@ func TestSerializer_Deserialize(t *testing.T) {
 	}
 	o := Test{}
 	err = s.Deserialize(serialized, &o)
-	if o != testDeserializedResult {
+	if o != testDeserializedResult || err != nil {
 		t.Error("!")
 	}
 
@@ -80,7 +80,7 @@ func TestSerializer_Deserialize2(t *testing.T) {
 	}
 	o := Recursive{}
 	err = s.Deserialize(serialized, &o)
-	if o != expected2 {
+	if o != expected2 || err != nil {
 		fmt.Println(o)
 		fmt.Println(expected2)
 		t.Error("!")
@@ -109,7 +109,7 @@ func TestSerializer_Deserialize3(t *testing.T) {
 	}
 	o := []Recursive{}
 	err = s.Deserialize(serialized, &o)
-	if o[0] != expected2[0] {
+	if o[0] != expected2[0] || err != nil {
 		fmt.Println(o)
 		fmt.Println(expected2)
 		t.Error("!")
@@ -133,7 +133,7 @@ func TestSerializer_Deserialize4(t *testing.T) {
 	}
 	o := new(Hidden)
 	err = s.Deserialize(serialized, &o)
-	if *o != *expected1 {
+	if *o != *expected1 || err != nil {
 		t.Error("!")
 	}
 
@@ -160,7 +160,7 @@ func TestSerializer_Deserialize5(t *testing.T) {
 	}
 	o := []*Recursive{}
 	err = s.Deserialize(serialized, &o)
-	if *o[0] != *expected2[0] {
+	if *o[0] != *expected2[0] || err != nil {
 		fmt.Println(*o[0])
 		fmt.Println(*expected2[0])
 		t.Error("!")
@@ -190,7 +190,7 @@ func TestSerializer_Deserialize6(t *testing.T) {
 	}
 	o := new([]Recursive)
 	err = s.Deserialize(serialized, o)
-	if (*o)[0] != expected2[0] {
+	if (*o)[0] != expected2[0] || err != nil {
 		fmt.Println(*o)
 		fmt.Println(expected2)
 		t.Error("!")
@@ -219,7 +219,7 @@ func TestSerializer_Deserialize7(t *testing.T) {
 	}
 	o := new([]Recursive)
 	err = s.Deserialize(serialized, o)
-	if (*o)[0] != expected2[0] {
+	if (*o)[0] != expected2[0] || err != nil {
 		fmt.Println(*o)
 		fmt.Println(expected2)
 		t.Error("!")
@@ -254,7 +254,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 
 	var o Ptr
 	err = s.Deserialize(serialized, &o)
-	if !reflect.DeepEqual(o, expected) {
+	if !reflect.DeepEqual(o, expected) || err != nil {
 		fmt.Println(o)
 		fmt.Println(expected)
 		t.Error("Test failed!")
@@ -272,35 +272,13 @@ func TestSerializer_Deserialize9(t *testing.T) {
 	}
 	o := make(map[string]Test)
 	err = s.Deserialize(serialized, &o)
-	if o["test"] != testDeserializedResult {
+	if o["test"] != testDeserializedResult || err != nil {
 		fmt.Println(o["test"])
 		fmt.Println(testDeserializedResult)
 		t.Error("!")
 	}
 }
 
-// map[typed] to map[typed]
-/*
-func TestSerializer_Deserialize10(t *testing.T) {
-	test1 := make(map[string]Test)
-	test1["test"] = test
-	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test1, "test")
-	if err != nil {
-		t.Error(err)
-	}
-	o := make(map[string]Test)
-	err = s.Deserialize(serialized, &o)
-	if err != nil {
-		t.Error(err)
-	}
-	if o["test"] != testDeserializedResult {
-		fmt.Println("o[test]:", o["test"])
-		fmt.Println("Expected:", testDeserializedResult)
-		t.Error("Deserialization result does not match expected value")
-	}
-}
-*/
 // anonymous
 func TestSerializer_Deserialize11(t *testing.T) {
 	s := NewSerializer(format.JSON)
@@ -312,7 +290,7 @@ func TestSerializer_Deserialize11(t *testing.T) {
 	}
 	o := Test2{}
 	err = s.Deserialize(serialized, &o)
-	if o != rr {
+	if o != rr || err != nil {
 		fmt.Println(serialized)
 		fmt.Println(rr)
 		fmt.Println(o)
@@ -332,7 +310,7 @@ func TestSerializer_Deserialize12(t *testing.T) {
 	}
 	o := Test2{}
 	err = s.Deserialize(serialized, &o)
-	if o != rr {
+	if o != rr || err != nil {
 		fmt.Println(serialized)
 		fmt.Println(rr)
 		fmt.Println(o)
@@ -355,6 +333,9 @@ func TestSerializer_MergeObjects(t *testing.T) {
 	}
 	o := Test{}
 	err = s.Deserialize(serialized, &o)
+	if err != nil {
+		t.Error(err)
+	}
 	err = s.MergeObjects(&target, &o)
 	if err != nil {
 		t.Error(err)
@@ -401,41 +382,6 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 
 }
 
-// jsonLd coverage
-func TestSerializer_DeserializeJsonLD(t *testing.T) {
-	s := NewSerializer(format.JSONLD)
-	serialized, err := s.Serialize(test, "test")
-	if err != nil {
-		t.Error(err)
-	}
-	o := Test{}
-	err = s.Deserialize(serialized, &o)
-	if o != testDeserializedResult || err != nil {
-		t.Error("!")
-	}
-
-}
-
-// Unknown format coverage
-func TestSerializer_DeserializeUndefined(t *testing.T) {
-	s := NewSerializer(format.Undefined)
-	_, err := s.Serialize(test, "test")
-	if err == nil {
-		t.Error("should not work")
-	}
-
-}
-
-// Unknown format coverage
-func TestSerializer_DeserializeUnknown(t *testing.T) {
-	s := NewSerializer(format.Unknown)
-	_, err := s.Serialize(test, "test")
-	if err == nil {
-		t.Error("should not work")
-	}
-
-}
-
 // target object should be a pointer
 func TestSerializer_DeserializeStruct(t *testing.T) {
 	s := NewSerializer(format.JSON)
@@ -449,4 +395,38 @@ func TestSerializer_DeserializeStruct(t *testing.T) {
 		t.Error("!")
 	}
 
+}
+
+// jsonLd coverage
+func TestSerializer_SerializeJsonLD(t *testing.T) {
+	s := NewSerializer(format.JSONLD)
+	serialized, err := s.Serialize(test, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	o := Test{}
+	err = s.Deserialize(serialized, &o)
+	if o != testDeserializedResult || err != nil {
+		t.Error("!")
+	}
+
+}
+
+// Undefined format coverage
+func TestSerializer_SerializeUndefined(t *testing.T) {
+	s := NewSerializer(format.Undefined)
+	_, err := s.Serialize(test, "test")
+	if err == nil {
+		t.Error("should not work")
+	}
+
+}
+
+// Unknown format coverage
+func TestSerializer_SerializeUnknown(t *testing.T) {
+	s := NewSerializer(format.Unknown)
+	_, err := s.Serialize(test, "test")
+	if err == nil {
+		t.Error(err)
+	}
 }

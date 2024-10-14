@@ -1,9 +1,9 @@
-package restman_test
+package router_test
 
 import (
 	"testing"
 
-	. "github.com/philiphil/restman"
+	. "github.com/philiphil/restman/router"
 )
 
 func TestConvertToSnakeCase(t *testing.T) {

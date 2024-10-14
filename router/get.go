@@ -1,10 +1,9 @@
-package restman
+package router
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/restman/errors"
 	method_type "github.com/philiphil/restman/method/MethodType"
-	"github.com/philiphil/restman/router"
 )
 
 func (r *ApiRouter[T]) Get(c *gin.Context) {
@@ -21,13 +20,13 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		return
 	}
 
-	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accept"))
+	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
 
-	c.Render(200, router.SerializerRenderer{
+	c.Render(200, SerializerRenderer{
 		Data:   object,
 		Format: responseFormat,
 		Groups: config.SerializationGroups,

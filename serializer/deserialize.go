@@ -28,7 +28,7 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 	}
 }
 
-func (s *Serializer) MergeObjects(target interface{}, source interface{}) error {
+func (s *Serializer) MergeObjects(target any, source any) error {
 	targetValue := reflect.ValueOf(target)
 	sourceValue := reflect.ValueOf(source)
 
@@ -77,7 +77,7 @@ func shouldExclude(field reflect.Value) bool {
 	return false
 }
 
-func (s *Serializer) DeserializeAndMerge(data string, target interface{}) error {
+func (s *Serializer) DeserializeAndMerge(data string, target any) error {
 	source := reflect.New(reflect.TypeOf(target).Elem()).Interface()
 
 	if err := s.Deserialize(data, source); err != nil {
@@ -92,7 +92,7 @@ func isEmpty(v reflect.Value) bool {
 	return reflect.DeepEqual(v.Interface(), zero.Interface())
 }
 
-func isPointer(v interface{}) bool {
+func isPointer(v any) bool {
 	t := reflect.TypeOf(v)
 	return t.Kind() == reflect.Ptr
 }

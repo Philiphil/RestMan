@@ -1,4 +1,4 @@
-package restman
+package router
 
 import (
 	"strconv"
@@ -7,7 +7,6 @@ import (
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/format"
 	method_type "github.com/philiphil/restman/method/MethodType"
-	"github.com/philiphil/restman/router"
 )
 
 func (r *ApiRouter[T]) GetList(c *gin.Context) {
@@ -16,7 +15,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	page--
 	itemPerPage, _ := strconv.Atoi(c.DefaultQuery("itemsPerPage", "100"))
 
-	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accept"))
+	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
@@ -41,8 +40,8 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 		if responseFormat == format.JSONLD {
 			c.Render(
 				200,
-				router.SerializerRenderer{
-					Data:   router.JsonldCollection(objects, c.Request.URL.String(), page+1, params, int((count+int64(itemPerPage)-1)/int64(itemPerPage))),
+				SerializerRenderer{
+					Data:   JsonldCollection(objects, c.Request.URL.String(), page+1, params, int((count+int64(itemPerPage)-1)/int64(itemPerPage))),
 					Format: responseFormat,
 					Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,
 				},
@@ -57,7 +56,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	}
 
 	c.Render(200,
-		router.SerializerRenderer{
+		SerializerRenderer{
 			Data:   objects,
 			Format: responseFormat,
 			Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,

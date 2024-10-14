@@ -18,20 +18,14 @@ func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcVal
 		newPtr.Elem().Set(srcValue)
 		destValue.Set(newPtr)
 	} else if isStruct(srcValue.Type()) {
-		destFieldType := destValue.Type()
-		if destFieldType.Kind() == reflect.Ptr {
-			destFieldType = destFieldType.Elem()
-		}
+		destFieldType := dereferenceTypeIfPointer(destValue.Type())
 
 		if destFieldType.Kind() == reflect.Struct {
 			destValueConverted := reflect.New(destFieldType).Elem()
 
 			for i := 0; i < destFieldType.NumField(); i++ {
 				destField := destFieldType.Field(i)
-				srcFieldValue := srcValue
-				if srcFieldValue.Type().Kind() == reflect.Ptr {
-					srcFieldValue = srcFieldValue.Elem()
-				}
+				srcFieldValue := dereferenceValueIfPointer(srcValue)
 
 				srcFieldValue = srcFieldValue.FieldByName(destField.Name)
 				destFieldValue := destValueConverted.Field(i)

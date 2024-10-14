@@ -45,3 +45,17 @@ func isMap(t reflect.Type) bool {
 func isAnonymous(field reflect.StructField) bool {
 	return field.Anonymous
 }
+
+func dereferenceValueIfPointer(value reflect.Value) reflect.Value {
+	if value.Kind() == reflect.Ptr {
+		return value.Elem()
+	}
+	return value
+}
+
+func dereferenceTypeIfPointer(t reflect.Type) reflect.Type {
+	if t.Kind() == reflect.Ptr {
+		return t.Elem()
+	}
+	return t
+}

@@ -1,4 +1,4 @@
-package restman_test
+package router_test
 
 import (
 	"bytes"
@@ -9,12 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	. "github.com/philiphil/restman"
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/orm/repository"
+	. "github.com/philiphil/restman/router"
 	"github.com/philiphil/restman/serializer"
 )
 

@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/restman"
 	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/router"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -58,7 +58,7 @@ func getDB() *gorm.DB {
 func SetupRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
-	test_ := restman.NewApiRouter(
+	test_ := router.NewApiRouter(
 		*orm.NewORM(repository.NewRepository[Test](getDB())),
 		method.DefaultApiMethods(),
 	)
