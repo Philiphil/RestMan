@@ -17,7 +17,6 @@ Symfony Serializer allowing serialization groups to control which property are a
 TODO  
 batch operation are down for now (except Get-List)  
 entity.ID would be so nice if it was UUID compatible somehow  
-JSONLD collection's metadata are ALMOST relyable (see tests)  
 Creating an Cache Interface somehow would be really nice  
 More configuration option, for pagination, by default enable, forced or disabled, max Item per page ...   
 Serializer is not as performant as it could be  

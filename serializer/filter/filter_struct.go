@@ -12,8 +12,8 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 		if value.IsNil() {
 			return obj
 		}
-		elemType = elemType.Elem()
-		value = value.Elem()
+		elemType = dereferenceTypeIfPointer(elemType)
+		value = dereferenceValueIfPointer(value)
 	}
 
 	var newFields []reflect.StructField
@@ -56,21 +56,14 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 func filterAnonymousFields(value reflect.Value, groups ...string) []reflect.StructField {
 	var anonymousFields []reflect.StructField
 
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
-	}
+	value = dereferenceValueIfPointer(value)
 
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Type().Field(i)
 		fieldValue := value.Field(i)
 
 		if isAnonymous(field) {
-			var fieldType reflect.Type
-			if fieldValue.Kind() == reflect.Ptr {
-				fieldType = fieldValue.Type().Elem()
-			} else {
-				fieldType = fieldValue.Type()
-			}
+			fieldType := dereferenceTypeIfPointer(fieldValue.Type())
 
 			for j := 0; j < fieldType.NumField(); j++ {
 				anonymousField := fieldType.Field(j)

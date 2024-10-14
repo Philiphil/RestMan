@@ -1,4 +1,4 @@
-package restman
+package router
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/restman/errors"
 	method_type "github.com/philiphil/restman/method/MethodType"
-	"github.com/philiphil/restman/router"
 	"github.com/philiphil/restman/serializer"
 )
 
@@ -16,7 +15,7 @@ func (r *ApiRouter[T]) Head(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
 		return
 	}
-	responseFormat, err := router.ParseAcceptHeader(c.GetHeader("Accept"))
+	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return

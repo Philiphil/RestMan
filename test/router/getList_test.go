@@ -1,4 +1,4 @@
-package restman_test
+package router_test
 
 import (
 	"fmt"
@@ -9,12 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	. "github.com/philiphil/restman"
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/orm/repository"
+	. "github.com/philiphil/restman/router"
 	"github.com/philiphil/restman/serializer"
 )
 
@@ -180,17 +180,17 @@ func TestApiRouter_GetListJSONLD(t *testing.T) {
 		t.Error("Failed to start server")
 	}
 	serializer := serializer.NewSerializer(format.JSONLD)
-	entities := make(map[string]interface{}, 0)
+	entities := make(map[string]any, 0)
 	serializer.Deserialize(w.Body.String(), &entities)
 	if entities["hydra:totalItems"].(float64) != 5 {
 		fmt.Println(entities["hydra:totalItems"])
 		t.Error("Expected 5 entities")
 	}
-	if entities["hydra:view"].(map[string]interface{})["hydra:first"] != "/api/test?page=1" {
+	if entities["hydra:view"].(map[string]any)["hydra:first"] != "/api/test?page=1" {
 		t.Error("Expected /api/test?page=1")
 	}
 
-	if entities["hydra:view"].(map[string]interface{})["hydra:next"] != "/api/test?page=2" {
+	if entities["hydra:view"].(map[string]any)["hydra:next"] != "/api/test?page=2" {
 		t.Error("Expected /api/test?page=2")
 	}
 

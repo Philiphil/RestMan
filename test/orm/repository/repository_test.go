@@ -52,7 +52,7 @@ func (g ProductGorm) ToEntity() Product {
 
 // FromEntity respects the orm.GormModel interface
 // Creates new GORM model from Entity.
-func (g ProductGorm) FromEntity(product Product) interface{} {
+func (g ProductGorm) FromEntity(product Product) any {
 	return ProductGorm{
 		ID:          product.ID,
 		Name:        product.Name,
