@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/philiphil/restman/method"
+	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
-	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/orm/gormrepository"
+	"github.com/philiphil/restman/route"
 	. "github.com/philiphil/restman/router"
 	"github.com/philiphil/restman/security"
 	"gorm.io/driver/sqlite"
@@ -17,14 +19,14 @@ import (
 )
 
 type Test struct {
-	entity.Entity
+	entity.BaseEntity
 }
 
 func (e Test) GetId() entity.ID {
 	return e.Id
 }
 
-func (e Test) SetId(id any) entity.IEntity {
+func (e Test) SetId(id any) entity.Entity {
 	e.Id = entity.CastId(id)
 	return e
 }
@@ -54,8 +56,8 @@ func getDB() *gorm.DB {
 
 func TestNewApiRouter(t *testing.T) {
 	test_ := NewApiRouter[Test](
-		*orm.NewORM[Test](repository.NewRepository[Test, Test](getDB())),
-		method.DefaultApiMethods(),
+		*orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB())),
+		route.DefaultApiRoutes(),
 	)
 	if test_ == nil {
 		t.Error("Expected not nil")
@@ -65,47 +67,72 @@ func TestNewApiRouter(t *testing.T) {
 // Test the route generation of the router
 // it should start with a / and end without a /
 func TestNewApiRouter2(t *testing.T) {
-	test_ := NewApiRouter[Test](
-		*orm.NewORM[Test](repository.NewRepository[Test, Test](getDB())),
-		method.DefaultApiMethods(),
-		"v2/test",
+	test_ := NewApiRouter(
+		*orm.NewORM(gormrepository.NewRepository[Test](getDB())),
+		route.DefaultApiRoutes(),
+		configuration.RoutePrefix("v2"),
+		configuration.RouteName("test"),
 	)
 
-	if test_.Route != "/v2/test" {
+	if test_.Route() != "/v2/test" {
 		t.Error("Expected v2/test")
 	}
 
-	test_ = NewApiRouter[Test](
-		*orm.NewORM[Test](repository.NewRepository[Test, Test](getDB())),
-		method.DefaultApiMethods(),
-		"v2/test/",
+	test_ = NewApiRouter(
+		*orm.NewORM(gormrepository.NewRepository[Test](getDB())),
+		route.DefaultApiRoutes(),
+		configuration.RoutePrefix("/v2/"),
+		configuration.RouteName("/test/"),
 	)
-	if test_.Route != "/v2/test" {
-		fmt.Println(test_.Route)
-		t.Error("Expected v2/test")
-	}
-	test_ = NewApiRouter[Test](
-		*orm.NewORM[Test](repository.NewRepository[Test, Test](getDB())),
-		method.DefaultApiMethods(),
-		"/v2/test",
-	)
-
-	if test_.Route != "/v2/test" {
+	if test_.Route() != "/v2/test" {
+		fmt.Println(test_.Route())
 		t.Error("Expected v2/test")
 	}
 }
 
+type AnonymousUser struct {
+}
+
+func (u AnonymousUser) GetId() entity.ID {
+	return 0
+}
+func (u AnonymousUser) SetId(id any) entity.Entity {
+	return u
+}
+
+type AnonymousFirewall struct {
+}
+
+func (f AnonymousFirewall) GetUser(*gin.Context) (security.User, error) {
+	return nil, nil
+}
+
 func TestApiRouter_AddFirewall(t *testing.T) {
 	test_ := NewApiRouter[Test](
-		*orm.NewORM[Test](repository.NewRepository[Test, Test](getDB())),
-		method.DefaultApiMethods(),
+		*orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB())),
+		route.DefaultApiRoutes(),
 	)
-	test_.AddFirewall(security.AnonymousFirewall{})
+	test_.AddFirewall(AnonymousFirewall{})
 	if len(test_.Firewalls) != 1 {
 		t.Error("Expected 1")
 	}
-	test_.AddFirewall(security.AnonymousFirewall{})
+	test_.AddFirewall(AnonymousFirewall{})
 	if len(test_.Firewalls) != 2 {
 		t.Error("Expected 2")
+	}
+}
+
+func TestTrimSlash(t *testing.T) {
+	if TrimSlash("/test/") != "test" {
+		t.Error("Expected test")
+	}
+	if TrimSlash("test/") != "test" {
+		t.Error("Expected test")
+	}
+	if TrimSlash("/test") != "test" {
+		t.Error("Expected test")
+	}
+	if TrimSlash("test") != "test" {
+		t.Error("Expected test")
 	}
 }

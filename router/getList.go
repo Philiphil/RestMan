@@ -1,19 +1,136 @@
 package router
 
 import (
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/format"
-	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/route"
 )
 
+func (r *ApiRouter[T]) IsPaginationEnabled(c *gin.Context) (bool, error) {
+	paginationConf, err := r.GetConfiguration(configuration.PaginationType, route.GetList)
+	if err != nil {
+		return false, err
+	}
+	forcedPaginationConf, err := r.GetConfiguration(configuration.ForcedPaginationType, route.GetList)
+	if err != nil {
+		return false, err
+	}
+	clientCanForcePaginationUsingParameter, err := strconv.ParseBool(forcedPaginationConf.Values[0])
+	if err != nil {
+		return false, err
+	}
+	basepaginationBool, err := strconv.ParseBool(paginationConf.Values[0])
+	if err != nil {
+		return false, err
+	}
+	if !clientCanForcePaginationUsingParameter {
+		return basepaginationBool, nil
+	}
+	forcedParameterConf, err := r.GetConfiguration(configuration.ForcedPaginationParameterNameType, route.GetList)
+	if err != nil {
+		return false, err
+	}
+	return strconv.ParseBool(c.DefaultQuery(forcedParameterConf.Values[0], paginationConf.Values[0]))
+}
+
+func (r *ApiRouter[T]) GetItemPerPage(c *gin.Context) (int, error) {
+	defaultItemPerPage, err := r.GetConfiguration(configuration.ItemPerPageType, route.GetList)
+	if err != nil {
+		return 0, err
+	}
+	maxItemPerPage, err := r.GetConfiguration(configuration.MaxItemPerPageType, route.GetList)
+	if err != nil {
+		return 0, err
+	}
+	itemPerPageParameter, err := r.GetConfiguration(configuration.ItemPerPageParameterNameType, route.GetList)
+	if err != nil {
+		return 0, err
+	}
+	itemPerPage, err := strconv.Atoi(c.DefaultQuery(itemPerPageParameter.Values[0], defaultItemPerPage.Values[0]))
+	if err != nil {
+		return 0, err
+	}
+	maxItemPerPageValue, err := strconv.Atoi(maxItemPerPage.Values[0])
+	if itemPerPage > maxItemPerPageValue {
+		itemPerPage = maxItemPerPageValue
+	}
+	return itemPerPage, err
+}
+
+func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
+	sortParams := make(map[string]string)
+
+	// is sorting enabled
+	sortEnabled, err := r.GetConfiguration(configuration.SortEnabledType, route.GetList)
+	if err != nil {
+		return nil, err
+	}
+	enabled, parseErr := strconv.ParseBool(sortEnabled.Values[0])
+	if parseErr != nil {
+		return nil, parseErr
+	}
+
+	// I should replace this by a default map[string]string
+	defaultSortOrder, err := r.GetConfiguration(configuration.SortOrderType, route.GetList)
+	if err != nil {
+		return nil, err
+	}
+	if !enabled {
+		sortParams["id"] = defaultSortOrder.Values[0]
+		return sortParams, nil
+	}
+
+	// get the sort paramter name and allowed fields for sorting
+	sortParam, err := r.GetConfiguration(configuration.SortOrderParameterNameType, route.GetList)
+	if err != nil {
+		return nil, err
+	}
+	sortByFields, err := r.GetConfiguration(configuration.SortByFieldsType, route.GetList)
+	if err != nil {
+		return nil, err
+	}
+
+	queryParams := c.QueryMap(sortParam.Values[0])
+	for field, order := range queryParams {
+		order = strings.ToUpper(order)
+		if order != "ASC" && order != "DESC" || !slices.Contains(sortByFields.Values, field) {
+			return nil, errors.ErrBadRequest
+		}
+		sortParams[field] = order
+	}
+	if len(sortParams) == 0 {
+		sortParams["id"] = defaultSortOrder.Values[0]
+	}
+
+	return sortParams, nil
+}
+
 func (r *ApiRouter[T]) GetList(c *gin.Context) {
-	pagination, _ := strconv.ParseBool(c.DefaultQuery("pagination", "false"))
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	paginate, err := r.IsPaginationEnabled(c)
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+	itemPerPage, err := r.GetItemPerPage(c)
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+	sortOrder, err := r.GetSortOrder(c)
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
+	pageParameter, _ := r.GetConfiguration(configuration.PageParameterNameType, route.GetList)
+	page, _ := strconv.Atoi(c.DefaultQuery(pageParameter.Values[0], "1"))
 	page--
-	itemPerPage, _ := strconv.Atoi(c.DefaultQuery("itemsPerPage", "100"))
 
 	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
@@ -21,16 +138,23 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 		return
 	}
 
-	var objects []T
+	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.GetList)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		return
+	}
 
-	if pagination {
-		objects, err = r.Orm.GetPaginatedList(itemPerPage, page)
+	var objects []T
+	if paginate {
+		objects, err = r.Orm.GetPaginatedList(itemPerPage, page, sortOrder)
 		if err != nil {
-			panic(err)
+			c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
+			return
 		}
 		count, err := r.Orm.Count()
 		if err != nil {
-			panic(err)
+			c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
+			return
 		}
 		params := map[string]string{}
 		for _, param := range c.Params {
@@ -43,13 +167,13 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 				SerializerRenderer{
 					Data:   JsonldCollection(objects, c.Request.URL.String(), page+1, params, int((count+int64(itemPerPage)-1)/int64(itemPerPage))),
 					Format: responseFormat,
-					Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,
+					Groups: groups.Values,
 				},
 			)
 			return
 		}
 	} else {
-		objects, err = r.Orm.GetAll()
+		objects, err = r.Orm.GetAll(sortOrder)
 		if err != nil {
 			c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 		}
@@ -59,7 +183,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 		SerializerRenderer{
 			Data:   objects,
 			Format: responseFormat,
-			Groups: r.GetMethodConfiguration(method_type.GetList).SerializationGroups,
+			Groups: groups.Values,
 		})
 
 }

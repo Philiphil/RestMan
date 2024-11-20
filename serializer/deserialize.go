@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/philiphil/restman/format"
+	"github.com/philiphil/restman/serializer/filter"
 )
 
+// Deserializer encapsulates the deserialization logic
 func (s *Serializer) Deserialize(data string, obj any) error {
 	if !isPointer(obj) {
 		return fmt.Errorf("object must be pointer")
@@ -28,6 +30,8 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 	}
 }
 
+// MergeObjects merges two objects together
+// Both target and source must be pointers
 func (s *Serializer) MergeObjects(target any, source any) error {
 	targetValue := reflect.ValueOf(target)
 	sourceValue := reflect.ValueOf(source)
@@ -45,25 +49,59 @@ func (s *Serializer) MergeObjects(target any, source any) error {
 }
 
 func mergeFields(target reflect.Value, source reflect.Value) {
-	for i := 0; i < target.NumField(); i++ {
-		targetField := target.Field(i)
-		sourceField := source.Field(i)
+	source = filter.DereferenceValueIfPointer(source)
 
-		if shouldExclude(targetField) {
-			continue
+	//if target is nil or empty, lets create anew
+	if (target.Kind() == reflect.Ptr || target.Kind() == reflect.Interface) && target.IsNil() {
+		newTarget := reflect.New(source.Type())
+		if target.Kind() == reflect.Ptr {
+			target.Set(newTarget)
 		}
+		target = newTarget.Elem()
+	} else if target.Kind() == reflect.Slice && target.IsNil() {
+		target.Set(reflect.MakeSlice(source.Type(), 0, source.Len()))
+	}
 
-		if targetField.CanSet() && !isEmpty(sourceField) {
-			if targetField.Kind() == reflect.Struct && sourceField.Kind() == reflect.Struct {
-				mergeFields(targetField, sourceField)
+	target = filter.DereferenceValueIfPointer(target)
+
+	if target.Kind() == reflect.Struct && source.Kind() == reflect.Struct {
+		for i := 0; i < target.NumField(); i++ {
+			targetField := target.Field(i)
+			sourceField := source.Field(i)
+
+			if shouldExclude(targetField) {
+				continue
+			}
+
+			if targetField.CanSet() && !isEmpty(sourceField) {
+				if targetField.Kind() == reflect.Struct && sourceField.Kind() == reflect.Struct {
+					mergeFields(targetField, sourceField)
+				} else {
+					targetField.Set(sourceField)
+				}
+			}
+		}
+		return
+	}
+
+	if target.Kind() == reflect.Slice && source.Kind() == reflect.Slice {
+		for i := 0; i < source.Len(); i++ {
+			sourceElem := source.Index(i)
+			if sourceElem.Kind() == reflect.Ptr || sourceElem.Kind() == reflect.Struct {
+				mergedElem := reflect.New(sourceElem.Type()).Elem()
+				if i < target.Len() {
+					mergeFields(target.Index(i), sourceElem)
+				} else {
+					mergeFields(mergedElem, sourceElem)
+					target.Set(reflect.Append(target, mergedElem))
+				}
 			} else {
-				targetField.Set(sourceField)
+				target.Set(reflect.Append(target, sourceElem))
 			}
 		}
 	}
 }
 
-// Vérifie si le champ doit être exclu
 func shouldExclude(field reflect.Value) bool {
 	fieldName := field.Type().Name()
 	excludedFields := []string{"CreatedAt", "ModifiedAt", "DeletedAt"}
@@ -73,7 +111,6 @@ func shouldExclude(field reflect.Value) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -87,11 +124,13 @@ func (s *Serializer) DeserializeAndMerge(data string, target any) error {
 	return s.MergeObjects(target, source)
 }
 
+// isEmpty checks if a value has the zero value of its type
 func isEmpty(v reflect.Value) bool {
 	zero := reflect.Zero(v.Type())
 	return reflect.DeepEqual(v.Interface(), zero.Interface())
 }
 
+// isPointer checks if a value is a pointer
 func isPointer(v any) bool {
 	t := reflect.TypeOf(v)
 	return t.Kind() == reflect.Ptr

@@ -22,7 +22,7 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
-	var cast entity.IEntity
+	var cast entity.Entity
 	cast = *obj
 	cast = cast.SetId(id)
 	convertedEntity, _ := cast.(T)

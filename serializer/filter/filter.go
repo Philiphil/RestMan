@@ -8,13 +8,13 @@ func FilterByGroups[T any](obj T, groups ...string) T {
 	value := reflect.ValueOf(obj)
 	elemType := value.Type()
 
-	if isStruct(elemType) {
+	if IsStruct(elemType) {
 		return filterByGroupsStruct(obj, groups...)
 	}
-	if isList(elemType) {
+	if IsList(elemType) {
 		return filterByGroupsSlice(obj, groups...)
 	}
-	if isMap(elemType) {
+	if IsMap(elemType) {
 		return filterByGroupsMap(obj, groups...)
 	}
 	return obj

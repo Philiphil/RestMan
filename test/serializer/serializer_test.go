@@ -6,7 +6,7 @@ import (
 
 // needs fix
 
-/*
+/**
 func TestSerializer_SerializeXML(t *testing.T) {
 	s := NewSerializer(format.XML)
 	serialized, err := s.Serialize(test, "test")
@@ -34,22 +34,10 @@ func TestSerializer_SerializeCSV(t *testing.T) {
 	}
 }
 
-// slice
-func TestSerializer_Deserialize13(t *testing.T) {
-	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize([]Test{test}, "test")
-	if err != nil {
-		t.Error(err)
-	}
-	o := Test{}
-	err = s.Deserialize(serialized, &o)
-	if o != testDeserializedResult || err != nil {
-		t.Error("!")
-	}
-
-}
-
 // map[typed] to map[typed]
+// trying to debug
+// somehow at some point it tries to convert the whole struct inside an int
+// assignFieldValue seems to be given wrong data by filter_map
 func TestSerializer_Deserialize10(t *testing.T) {
 	test1 := make(map[string]Test)
 	test1["test"] = test
@@ -69,4 +57,6 @@ func TestSerializer_Deserialize10(t *testing.T) {
 		t.Error("Deserialization result does not match expected value")
 	}
 }
+
+/*
 */

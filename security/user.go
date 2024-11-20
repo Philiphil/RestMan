@@ -4,7 +4,9 @@ import (
 	"github.com/philiphil/restman/orm/entity"
 )
 
-type IUser interface {
-	SetId(any) entity.IEntity
+// User is an interface for the user
+// its compatible with entity.Entity
+type User interface {
+	SetId(any) entity.Entity
 	GetId() entity.ID
 }

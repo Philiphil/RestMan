@@ -1,0 +1,23 @@
+package configuration
+
+// This is the default configuration used by an ApiRouter
+func DefaultConfiguration() map[ConfigurationType]Configuration {
+	return map[ConfigurationType]Configuration{
+		RoutePrefixType:                   RoutePrefix("api"),
+		NetworkCachingPolicyType:          NetworkCachingPolicy(0),
+		SerializationGroupsType:           SerializationGroups(),
+		PaginationType:                    Pagination(true),
+		PageParameterNameType:             PageParameterName("page"),
+		ForcedPaginationType:              ForcedPagination(false),
+		ForcedPaginationParameterNameType: ForcedPaginationParameterName("pagination"),
+		ItemPerPageType:                   ItemPerPage(100),
+		MaxItemPerPageType:                MaxItemPerPage(1000),
+		BatchIdsParameterNameType:         BatchIdsName("ids"),
+		ItemPerPageParameterNameType:      ItemPerPageParameterName("itemsPerPage"),
+
+		SortEnabledType:            SortOrderEnabled(true),
+		SortOrderType:              SortOrder("ASC"),
+		SortOrderParameterNameType: SortOrderParameterName("sort"),
+		SortByFieldsType:           SortByFields("id"),
+	}
+}

@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
-	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/orm/gormrepository"
+	"github.com/philiphil/restman/route"
 	. "github.com/philiphil/restman/router"
 )
 
@@ -17,10 +17,10 @@ func TestApiRouter_put(t *testing.T) {
 	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](repository.NewRepository[Test, Test](getDB()))
+	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
 	test_ := NewApiRouter[Test](
 		*repo,
-		method.DefaultApiMethods(),
+		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
 

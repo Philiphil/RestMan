@@ -9,28 +9,24 @@ func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcVal
 	if srcValue.IsZero() {
 		return
 	}
-	if field.Type == srcValue.Type() {
+	if field.Type == srcValue.Type() || field.Type.AssignableTo(srcValue.Type()) {
 		destValue.Set(srcValue)
-	} else if field.Type.AssignableTo(srcValue.Type()) {
-		destValue.Set(srcValue)
-	} else if field.Type.Kind() == reflect.Ptr && field.Type.Elem() == srcValue.Type() {
+	} else if field.Type.Kind() == reflect.Ptr && DereferenceTypeIfPointer(field.Type) == DereferenceTypeIfPointer(srcValue.Type()) {
 		newPtr := reflect.New(field.Type.Elem())
 		newPtr.Elem().Set(srcValue)
 		destValue.Set(newPtr)
-	} else if isStruct(srcValue.Type()) {
-		destFieldType := dereferenceTypeIfPointer(destValue.Type())
-
+	} else if IsStruct(srcValue.Type()) {
+		destFieldType := DereferenceTypeIfPointer(destValue.Type())
 		if destFieldType.Kind() == reflect.Struct {
 			destValueConverted := reflect.New(destFieldType).Elem()
-
 			for i := 0; i < destFieldType.NumField(); i++ {
 				destField := destFieldType.Field(i)
-				srcFieldValue := dereferenceValueIfPointer(srcValue)
+				srcFieldValue := DereferenceValueIfPointer(srcValue)
 
 				srcFieldValue = srcFieldValue.FieldByName(destField.Name)
 				destFieldValue := destValueConverted.Field(i)
 
-				if isStruct(srcFieldValue.Type()) && destFieldValue.Kind() == reflect.Struct {
+				if IsStruct(srcFieldValue.Type()) && destFieldValue.Kind() == reflect.Struct {
 					assignFieldValue(destField, destFieldValue, srcFieldValue)
 				} else {
 					assignFieldValue(destField, destFieldValue, srcFieldValue)
@@ -39,6 +35,7 @@ func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcVal
 
 			destValue.Set(destValueConverted)
 		} else {
+			//mostly for date objects
 			destValue.Set(srcValue.Convert(destFieldType))
 		}
 	} else {

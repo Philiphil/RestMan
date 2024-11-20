@@ -6,8 +6,8 @@ import (
 	"github.com/philiphil/restman/security"
 )
 
-func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.IUser, error) {
-	var user security.IUser
+func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.User, error) {
+	var user security.User
 	var err error
 	for _, firewall := range r.Firewalls {
 		user, err = firewall.GetUser(c)

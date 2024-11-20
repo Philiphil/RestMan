@@ -5,7 +5,7 @@ import (
 )
 
 func filterByGroupsSlice[T any](obj T, groups ...string) T {
-	value := dereferenceValueIfPointer(reflect.ValueOf(obj))
+	value := DereferenceValueIfPointer(reflect.ValueOf(obj))
 
 	if value.Len() == 0 {
 		return obj
