@@ -12,19 +12,19 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 		if value.IsNil() {
 			return obj
 		}
-		elemType = dereferenceTypeIfPointer(elemType)
-		value = dereferenceValueIfPointer(value)
+		elemType = DereferenceTypeIfPointer(elemType)
+		value = DereferenceValueIfPointer(value)
 	}
 
 	var newFields []reflect.StructField
 
 	if value.IsValid() {
-		for i := 0; i < value.NumField(); i++ {
+		for i := range value.NumField() {
 			field := elemType.Field(i)
 			if isFieldExported(field) && IsFieldIncluded(field, groups) {
 				fieldValue := value.Field(i)
 
-				if isStruct(field.Type) && !isAnonymous(field) {
+				if IsStruct(field.Type) && !isAnonymous(field) {
 					filteredElem := FilterByGroups(fieldValue.Interface(), groups...)
 					newFields = append(newFields, reflect.StructField{
 						Name: field.Name,
@@ -56,14 +56,14 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 func filterAnonymousFields(value reflect.Value, groups ...string) []reflect.StructField {
 	var anonymousFields []reflect.StructField
 
-	value = dereferenceValueIfPointer(value)
+	value = DereferenceValueIfPointer(value)
 
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Type().Field(i)
 		fieldValue := value.Field(i)
 
 		if isAnonymous(field) {
-			fieldType := dereferenceTypeIfPointer(fieldValue.Type())
+			fieldType := DereferenceTypeIfPointer(fieldValue.Type())
 
 			for j := 0; j < fieldType.NumField(); j++ {
 				anonymousField := fieldType.Field(j)

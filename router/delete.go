@@ -16,7 +16,7 @@ func (r *ApiRouter[T]) Delete(c *gin.Context) {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
-	if err = r.Orm.Delete(id); err != nil {
+	if err = r.Orm.Delete(object); err != nil {
 		c.AbortWithStatusJSON(500, "Database issue")
 		return
 	}

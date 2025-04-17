@@ -5,13 +5,8 @@ import (
 )
 
 func filterByGroupsMap[T any](obj T, groups ...string) T {
-	value := reflect.ValueOf(obj)
-	elemType := value.Type()
-
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
-		elemType = elemType.Elem()
-	}
+	value := DereferenceValueIfPointer(reflect.ValueOf(obj))
+	elemType := DereferenceTypeIfPointer(value.Type())
 
 	mapType := reflect.MapOf(elemType.Key(), elemType.Elem())
 	mapValue := reflect.MakeMap(mapType)
@@ -27,7 +22,7 @@ func filterByGroupsMap[T any](obj T, groups ...string) T {
 		if !ok {
 			filteredValValue = reflect.ValueOf(filteredVal)
 		}
-
+		//Somehow unspecified struct cannot be assigned to the specified version of it
 		if filteredValValue.Type().AssignableTo(elemType.Elem()) {
 			mapValue.SetMapIndex(key, filteredValValue)
 		} else {

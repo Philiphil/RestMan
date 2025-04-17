@@ -1,7 +1,6 @@
 package router_test
 
 import (
-	"fmt"
 	"testing"
 
 	"net/http"
@@ -9,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/philiphil/restman/method"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
-	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/orm/gormrepository"
+	"github.com/philiphil/restman/route"
 	. "github.com/philiphil/restman/router"
 )
 
@@ -21,16 +20,16 @@ func TestApiRouter_delete(t *testing.T) {
 	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](repository.NewRepository[Test, Test](getDB()))
+	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
 	test_ := NewApiRouter[Test](
 		*repo,
-		method.DefaultApiMethods(),
+		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
 	test_.Delete(context)
 
-	entity := Test{entity.Entity{Id: 1}}
+	entity := Test{entity.BaseEntity{Id: 1}}
 	repo.Create(&entity)
 	w := httptest.NewRecorder()
 
@@ -44,8 +43,6 @@ func TestApiRouter_delete(t *testing.T) {
 	req, _ = http.NewRequest("DELETE", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusNoContent {
-		fmt.Println(w.Body.String())
-		fmt.Println(w.Code)
 		t.Error("Failed to delete")
 	}
 

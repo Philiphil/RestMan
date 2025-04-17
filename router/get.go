@@ -2,8 +2,9 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
-	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/route"
 )
 
 func (r *ApiRouter[T]) Get(c *gin.Context) {
@@ -12,7 +13,6 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
 		return
 	}
-	config := r.GetMethodConfiguration(method_type.Get)
 
 	err = r.ReadingCheck(c, object)
 	if err != nil {
@@ -26,9 +26,15 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		return
 	}
 
+	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.Get)
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
 	c.Render(200, SerializerRenderer{
 		Data:   object,
 		Format: responseFormat,
-		Groups: config.SerializationGroups,
+		Groups: groups.Values,
 	})
 }
