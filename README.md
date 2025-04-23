@@ -14,6 +14,7 @@ Serialization groups to control which property are allowed to be readed or wrote
 
 
 ## TODO, Ideas for myself and for random contributors
+subressource
 Filtering
 groupS override parameter
 GraphQL-like PageInfo Object / after, before, first, last, pageof ?
@@ -28,5 +29,4 @@ check messagepack
 Serializer could be refactord
 Somehow hooks could be nice ??  (meh)
 The fireWall could have a builtin requireOwnership
-subressource pagination
 performance evaluation could be nice (is there even a place for paralelilsm somewhere ??)
