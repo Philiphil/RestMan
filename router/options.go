@@ -2,26 +2,24 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	method_type "github.com/philiphil/restman/method/MethodType"
+	"github.com/philiphil/restman/route"
 )
 
 func (r *ApiRouter[T]) Options(c *gin.Context) {
 	allowed := ""
-	for _, method := range r.Methods {
-		switch method.Method {
-		case method_type.GetList:
-			break
-		case method_type.PutList:
-			break
-		case method_type.PatchList:
-			break
-		case method_type.DeleteList:
-			break
+	for _, method := range r.Routes {
+		switch method.RouteType {
+		case route.GetList:
+		case route.BatchDelete:
+		case route.BatchPatch:
+		case route.BatchPut:
+		case route.BatchGet:
+		case route.BatchPost:
 		default:
 			if len(allowed) > 0 {
 				allowed += ","
 			}
-			allowed += method.Method.String()
+			allowed += method.RouteType.String()
 		}
 	}
 	c.Header("Allow", allowed)

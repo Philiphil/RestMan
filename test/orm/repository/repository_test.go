@@ -1,13 +1,14 @@
-package repository_test
+package gormrepository_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/philiphil/restman/orm/entity"
-	"github.com/philiphil/restman/orm/repository"
+	"github.com/philiphil/restman/orm/gormrepository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -19,16 +20,16 @@ type Product struct {
 	Name        string
 	Weight      uint
 	IsAvailable bool
+	Qtt         *int
 }
 
-func (p Product) SetId(a any) entity.IEntity {
+func (p Product) SetId(a any) entity.Entity {
 	//TODO implement me
 	panic("implement me")
 }
 
 func (p Product) GetId() entity.ID {
-	//TODO implement me
-	panic("implement me")
+	return entity.ID(p.ID)
 }
 
 // ProductGorm is DTO used to map Product entity to database
@@ -37,6 +38,7 @@ type ProductGorm struct {
 	Name        string `orm:"column:name"`
 	Weight      uint   `orm:"column:weight"`
 	IsAvailable bool   `orm:"column:is_available"`
+	Qtt         *int   `orm:"column:qtt"`
 }
 
 // ToEntity respects the orm.GormModel interface
@@ -53,12 +55,7 @@ func (g ProductGorm) ToEntity() Product {
 // FromEntity respects the orm.GormModel interface
 // Creates new GORM model from Entity.
 func (g ProductGorm) FromEntity(product Product) any {
-	return ProductGorm{
-		ID:          product.ID,
-		Name:        product.Name,
-		Weight:      product.Weight,
-		IsAvailable: product.IsAvailable,
-	}
+	return ProductGorm(product)
 }
 
 func getDB() (*gorm.DB, error) {
@@ -81,7 +78,7 @@ func TestMain(m *testing.M) {
 }
 func TestGormRepository_Insert(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -120,7 +117,7 @@ func TestGormRepository_Insert(t *testing.T) {
 
 func TestGormRepository_FindByID(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	_, err := repository.FindByID(ctx, 8)
@@ -132,10 +129,9 @@ func TestGormRepository_FindByID(t *testing.T) {
 
 func TestGormRepository_Count(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
-	ctx := context.Background()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 
-	nb, err := repository.Count(ctx)
+	nb, err := repository.Count()
 
 	if err != nil {
 		t.Error(err)
@@ -147,7 +143,7 @@ func TestGormRepository_Count(t *testing.T) {
 
 func TestGormRepository_Update(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product, err := repository.FindByID(ctx, 8)
@@ -155,7 +151,7 @@ func TestGormRepository_Update(t *testing.T) {
 		t.Error(err)
 	}
 	product.Name = "product2"
-	err = repository.Update(ctx, &product)
+	err = repository.Upsert(ctx, &product)
 	if err != nil {
 		t.Error(err)
 	}
@@ -170,7 +166,7 @@ func TestGormRepository_Update(t *testing.T) {
 
 func TestGormRepository_DeleteByID(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 	err := repository.DeleteByID(ctx, 8)
 	if err != nil {
@@ -184,7 +180,7 @@ func TestGormRepository_DeleteByID(t *testing.T) {
 
 func TestGormRepository_Find(t *testing.T) {
 	db, _ := getDB()
-	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -201,7 +197,7 @@ func TestGormRepository_Find(t *testing.T) {
 		IsAvailable: true,
 	}
 	newRepository.Insert(ctx, &product2)
-	many, err := newRepository.Find(ctx, repository.GreaterOrEqual("weight", 50))
+	many, err := newRepository.Find(ctx, gormrepository.GreaterOrEqual("weight", 50))
 	if err != nil {
 		t.Error(err)
 	}
@@ -209,14 +205,16 @@ func TestGormRepository_Find(t *testing.T) {
 		t.Error(len(many))
 	}
 
+	i := 22
 	newRepository.Insert(ctx, &Product{
 		ID:          3,
 		Name:        "product3",
 		Weight:      250,
 		IsAvailable: false,
+		Qtt:         &i,
 	})
 
-	many, err = newRepository.Find(ctx, repository.GreaterOrEqual("weight", 90))
+	many, err = newRepository.Find(ctx, gormrepository.GreaterOrEqual("weight", 90))
 	if err != nil {
 		t.Error(err)
 	}
@@ -224,9 +222,9 @@ func TestGormRepository_Find(t *testing.T) {
 		t.Error("should be 3")
 	}
 
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.GreaterOrEqual("weight", 90),
-		repository.Equal("is_available", true)),
+	many, err = newRepository.Find(ctx, gormrepository.And(
+		gormrepository.GreaterOrEqual("weight", 90),
+		gormrepository.Equal("is_available", true)),
 	)
 	if err != nil {
 		t.Error(err)
@@ -238,7 +236,7 @@ func TestGormRepository_Find(t *testing.T) {
 
 func TestGormRepository_NewInstanceEntity(t *testing.T) {
 	db, _ := getDB()
-	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
 
 	entity := Product{}
 	if newRepository.NewEntity() != entity {
@@ -248,7 +246,7 @@ func TestGormRepository_NewInstanceEntity(t *testing.T) {
 
 func TestGormRepository_Delete(t *testing.T) {
 	db, _ := getDB()
-	repository := repository.NewRepository[ProductGorm, Product](db)
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
 	product := Product{
@@ -261,15 +259,29 @@ func TestGormRepository_Delete(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = repository.Delete(ctx, &product)
+	err = repository.Delete([]*Product{&product})
 	if err != nil {
 		t.Error(err)
 	}
 }
 
+func TestGormRepository_FindAll(t *testing.T) {
+	db, _ := getDB()
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	many, err := newRepository.FindAll(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 4 {
+		t.Error(len(many))
+	}
+}
+
 func TestGormRepository_GetDB(t *testing.T) {
 	db, _ := getDB()
-	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
 	if newRepository.GetDB() != db {
 		t.Error("should be equal")
 	}
@@ -279,12 +291,12 @@ func TestGormRepository_GetDB(t *testing.T) {
 // we will test the other conditions
 func TestGormRepository_Conditions(t *testing.T) {
 	db, _ := getDB()
-	newRepository := repository.NewRepository[ProductGorm, Product](db)
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
 	ctx := context.Background()
 
-	many, err := newRepository.Find(ctx, repository.And(
-		repository.GreaterThan("weight", 100),
-		repository.Equal("is_available", false)),
+	many, err := newRepository.Find(ctx, gormrepository.And(
+		gormrepository.GreaterThan("weight", 100),
+		gormrepository.Equal("is_available", false)),
 	)
 	if err != nil {
 		t.Error(err)
@@ -293,9 +305,9 @@ func TestGormRepository_Conditions(t *testing.T) {
 		t.Error(len(many))
 	}
 
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.Not(repository.Equal("is_available", true)),
-	))
+	many, err = newRepository.Find(ctx,
+		gormrepository.Not(gormrepository.Equal("is_available", true)),
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -303,9 +315,9 @@ func TestGormRepository_Conditions(t *testing.T) {
 		t.Error(len(many))
 	}
 
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.LessThan("weight", 51),
-	))
+	many, err = newRepository.Find(ctx,
+		gormrepository.LessThan("weight", 51),
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -313,9 +325,9 @@ func TestGormRepository_Conditions(t *testing.T) {
 		t.Error(len(many))
 	}
 
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.LessOrEqual("weight", 51),
-	))
+	many, err = newRepository.Find(ctx,
+		gormrepository.LessOrEqual("weight", 51),
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -323,31 +335,172 @@ func TestGormRepository_Conditions(t *testing.T) {
 		t.Error(many)
 	}
 
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.In("weight", []uint{50, 100}),
-	))
+	many, err = newRepository.Find(ctx,
+		gormrepository.In("weight", []uint{50, 100}),
+	)
 	if err != nil {
 		t.Error(err)
 	}
 	if len(many) != 3 {
 		t.Error(many)
 	}
-	many, err = newRepository.Find(ctx, repository.And(
-		repository.Or(
-			repository.Equal("weight", 50),
-			repository.Equal("weight", 100),
+	many, err = newRepository.Find(ctx,
+		gormrepository.Or(
+			gormrepository.Equal("weight", 50),
+			gormrepository.Equal("weight", 100),
 		),
-	))
+	)
 	if err != nil {
 		t.Error(err)
 	}
 	if len(many) != 3 {
 		t.Error(many)
 	}
+
+	many, err = newRepository.Find(ctx,
+		gormrepository.Or(
+			gormrepository.Equal("weight", 50),
+			gormrepository.Equal("weight", 100),
+		),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 3 {
+		t.Error(many)
+	}
+
+	many, err = newRepository.Find(ctx,
+		gormrepository.IsNull("qtt"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 3 {
+		t.Error(many)
+	}
+	many, err = newRepository.Find(ctx,
+		gormrepository.IsNotNull("qtt"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(many)
+	}
+
+	many, err = newRepository.Find(ctx,
+		gormrepository.Not(gormrepository.IsNull("qtt")),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 1 {
+		t.Error(many)
+	}
+}
+
+func TestGormRepository_Order(t *testing.T) {
+	db, _ := getDB()
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	many, err := newRepository.FindAll(ctx, gormrepository.OrderBy("weight", "DESC"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) == 0 {
+		t.Error(many)
+	}
+	fmt.Println(many)
+	if many[0].Weight != 250 {
+		t.Error(many[0].Weight)
+	}
+}
+
+func TestGormRepository_PreloadAssociation(t *testing.T) {
+	db, _ := getDB()
+	newRepository := gormrepository.NewRepository[ProductGorm, Product](db)
+	newRepository.EnablePreloadAssociations()
+	newRepository.DisablePreloadAssociations()
+	newRepository.SetPreloadAssociations(true)
+	newRepository.SetPreloadAssociations(false)
 
 }
 
-/*
-TODO
-Find (with sql cond)
-*/
+func TestGormRepository_BatchInsert(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	products := []*Product{
+		{
+			ID:          10,
+			Name:        "product1",
+			Weight:      100,
+			IsAvailable: true,
+		},
+		{
+			ID:          11,
+			Name:        "product2",
+			Weight:      50,
+			IsAvailable: true,
+		},
+	}
+	err := repository.BatchInsert(ctx, products)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+// BatchUpdate
+func TestGormRepository_BatchUpdate(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	products := []*Product{
+		{
+			ID:          11,
+			Name:        "product1",
+			Weight:      100,
+			IsAvailable: true,
+		},
+		{
+			ID:          12,
+			Name:        "product2",
+			Weight:      50,
+			IsAvailable: true,
+		},
+	}
+	err := repository.BatchUpdate(ctx, products)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+// BatchDelete
+func TestGormRepository_BatchDelete(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	products := []*Product{
+		{
+			ID:          11,
+			Name:        "product1",
+			Weight:      100,
+			IsAvailable: true,
+		},
+		{
+			ID:          12,
+			Name:        "product2",
+			Weight:      50,
+			IsAvailable: true,
+		},
+	}
+	err := repository.BatchDelete(ctx, products)
+	if err != nil {
+		t.Error(err)
+	}
+}

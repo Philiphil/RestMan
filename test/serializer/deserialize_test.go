@@ -319,6 +319,86 @@ func TestSerializer_Deserialize12(t *testing.T) {
 
 }
 
+// slice
+func TestSerializer_Deserialize13(t *testing.T) {
+	s := NewSerializer(format.JSON)
+	serialized, err := s.Serialize([]Test{test}, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	o := []Test{}
+	err = s.Deserialize(serialized, &o)
+	if o[0] != testDeserializedResult || err != nil {
+		fmt.Println("o:", o)
+		fmt.Println("Expected:", testDeserializedResult)
+		t.Error("!")
+	}
+}
+
+// try to deserialize primitive type
+func TestSerializer_Deserialize14(t *testing.T) {
+	s := NewSerializer(format.JSON)
+	serialized, err := s.Serialize(1, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o int
+	err = s.Deserialize(serialized, &o)
+	if o != 1 || err != nil {
+		t.Error("!")
+	}
+	//now string
+	serialized, err = s.Serialize("test", "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o2 string
+	err = s.Deserialize(serialized, &o2)
+	if o2 != "test" || err != nil {
+		t.Error("!")
+	}
+	//now bool
+	serialized, err = s.Serialize(true, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o3 bool
+	err = s.Deserialize(serialized, &o3)
+	if o3 != true || err != nil {
+		t.Error("!")
+	}
+	//now float
+	serialized, err = s.Serialize(1.1, "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o4 float64
+	err = s.Deserialize(serialized, &o4)
+	if o4 != 1.1 || err != nil {
+		t.Error("!")
+	}
+	// now int64
+	serialized, err = s.Serialize(int64(9223372036854775806), "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o5 int64
+	err = s.Deserialize(serialized, &o5)
+	if o5 != int64(9223372036854775806) || err != nil {
+		t.Error("!")
+	}
+	// now Rune
+	serialized, err = s.Serialize('a', "test")
+	if err != nil {
+		t.Error(err)
+	}
+	var o6 rune
+	err = s.Deserialize(serialized, &o6)
+	if o6 != 'a' || err != nil {
+		t.Error("!")
+	}
+}
+
 func TestSerializer_MergeObjects(t *testing.T) {
 	target := Test{
 		11, 11, 11, 11, 11, 11, 11,
@@ -429,4 +509,96 @@ func TestSerializer_SerializeUnknown(t *testing.T) {
 	if err == nil {
 		t.Error(err)
 	}
+}
+
+// test performance of deserialization, use a slice of 100 PTR structs,
+func BenchmarkSerializer_Deserialize(b *testing.B) {
+	test2 := []*Recursive{}
+	for i := 0; i < 100; i++ {
+		test2 = append(test2, &Recursive{
+			Hidden{1, 2},
+			Hidden{3, 4},
+		})
+	}
+	s := NewSerializer(format.JSON)
+	serialized, err := s.Serialize(test2, "test")
+	if err != nil {
+		b.Error(err)
+	}
+	o := []*Recursive{}
+	for i := 0; i < b.N; i++ {
+		err = s.Deserialize(serialized, &o)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+// test performance of serialization, use a slice of 100 Test2 structs
+func BenchmarkSerializer_Serialize(b *testing.B) {
+	test2 := []Test2{}
+	for i := 0; i < 100; i++ {
+		test2 = append(test2, Test2{test})
+	}
+	s := NewSerializer(format.JSON)
+	for i := 0; i < b.N; i++ {
+		_, err := s.Serialize(test2, "test")
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+// todo we need better test
+type FilterStruct struct {
+	Test0 int `group:"test"`
+	Test1 int `group:"testo"`
+	Test2 int
+	Test3 int `group:"testo,test"`
+}
+
+var testedFilterStruct = FilterStruct{
+	9, -8, 7, 6,
+}
+
+var testedFilterStructDeserializedResult = FilterStruct{
+	9, 0, 7, 6,
+}
+
+type PrimitiveStruct struct {
+	Test0 int     `group:"test"`
+	Test1 string  `group:"test"`
+	Test2 bool    `group:"test"`
+	Test3 float64 `group:"test"`
+	Test4 int64   `group:"test"`
+	Test5 rune    `group:"test"`
+}
+
+type NestedStruct struct {
+	Test0 FilterStruct `group:"test"`
+	Test1 FilterStruct
+}
+
+type PtrStruct struct {
+	Test0 *FilterStruct `group:"test"`
+	Test1 *FilterStruct
+}
+
+type AnonymousStruct struct {
+	FilterStruct
+}
+
+type SliceStruct struct {
+	Test0 []FilterStruct `group:"test"`
+	Test1 []FilterStruct
+}
+
+type MapStruct struct {
+	Test0 map[string]FilterStruct `group:"test"`
+	Test1 map[string]FilterStruct
+}
+
+type InterfaceStruct struct {
+	Test0 any `group:"test"`
+	Test1 any
 }

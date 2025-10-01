@@ -24,7 +24,7 @@ func (r *ApiRouter[T]) Put(c *gin.Context) {
 		return
 	}
 
-	var cast entity.IEntity
+	var cast entity.Entity
 	cast = *obj
 	cast = cast.SetId(id)
 

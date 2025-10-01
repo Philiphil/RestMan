@@ -31,31 +31,32 @@ func isFieldExported(field reflect.StructField) bool {
 	return field.PkgPath == ""
 }
 
-func isStruct(t reflect.Type) bool {
-	return t.Kind() == reflect.Struct || (t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct)
+func IsStruct(t reflect.Type) bool {
+	return DereferenceTypeIfPointer(t).Kind() == reflect.Struct
 }
 
-func isList(t reflect.Type) bool {
-	return t.Kind() == reflect.Slice || t.Kind() == reflect.Array || (t.Kind() == reflect.Ptr && (t.Elem().Kind() == reflect.Slice || t.Elem().Kind() == reflect.Array))
+func IsList(t reflect.Type) bool {
+	return DereferenceTypeIfPointer(t).Kind() == reflect.Slice || DereferenceTypeIfPointer(t).Kind() == reflect.Array
 }
-func isMap(t reflect.Type) bool {
-	return t.Kind() == reflect.Map || (t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Map)
+
+func IsMap(t reflect.Type) bool {
+	return DereferenceTypeIfPointer(t).Kind() == reflect.Map
 }
 
 func isAnonymous(field reflect.StructField) bool {
 	return field.Anonymous
 }
 
-func dereferenceValueIfPointer(value reflect.Value) reflect.Value {
+func DereferenceValueIfPointer(value reflect.Value) reflect.Value {
 	if value.Kind() == reflect.Ptr {
-		return value.Elem()
+		return DereferenceValueIfPointer(value.Elem())
 	}
 	return value
 }
 
-func dereferenceTypeIfPointer(t reflect.Type) reflect.Type {
+func DereferenceTypeIfPointer(t reflect.Type) reflect.Type {
 	if t.Kind() == reflect.Ptr {
-		return t.Elem()
+		return DereferenceTypeIfPointer(t.Elem())
 	}
 	return t
 }

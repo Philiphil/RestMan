@@ -4,7 +4,11 @@ import (
 	"strconv"
 )
 
+// ID is a type that represents an entity's primary identifier
 type ID uint
+
+// create a const null id at 0
+const NullId ID = 0
 
 func (e ID) String() string {
 	return strconv.FormatUint(uint64(e), 10)
@@ -23,5 +27,5 @@ func CastId(id any) ID {
 		return ID(convertedID)
 	}
 
-	return ID(0)
+	return NullId
 }

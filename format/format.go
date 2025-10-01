@@ -2,6 +2,7 @@ package format
 
 type Format string
 
+// Const of default formats handled by RestMan
 const (
 	Undefined Format = "undefined"
 	Unknown          = "unknown"
