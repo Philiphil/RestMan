@@ -7,7 +7,7 @@ import (
 
 //RestRepository
 
-type RestRepository[M entity.Model[E], E entity.Entity] interface {
+type RestRepository[M entity.DatabaseModel[E], E entity.Entity] interface {
 	Create(entities []*E) error
 	Read(ids []entity.ID) ([]*E, error)
 	Update(entities []*E) error

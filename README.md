@@ -14,7 +14,6 @@ Serialization groups to control which property are allowed to be readed or wrote
 
 
 ## TODO, Ideas for myself and for random contributors
-subressource
 Filtering
 groupS override parameter
 GraphQL-like PageInfo Object / after, before, first, last, pageof ?

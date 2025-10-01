@@ -11,13 +11,13 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-func NewRepository[M entity.Model[E], E entity.Entity](db *gorm.DB) *GormRepository[M, E] {
+func NewRepository[M entity.DatabaseModel[E], E entity.Entity](db *gorm.DB) *GormRepository[M, E] {
 	return &GormRepository[M, E]{
 		db: db,
 	}
 }
 
-type GormRepository[M entity.Model[E], E entity.Entity] struct {
+type GormRepository[M entity.DatabaseModel[E], E entity.Entity] struct {
 	db                 *gorm.DB
 	assocationsLoaded  bool
 	preloadAssocations bool

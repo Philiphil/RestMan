@@ -9,10 +9,10 @@ import (
 // The repository is an interface impleemting the CRUD operations
 // You can implement your own repository or use the default one
 type ORM[T entity.Entity] struct {
-	Repo RestRepository[entity.Model[T], T]
+	Repo RestRepository[entity.DatabaseModel[T], T]
 }
 
-func NewORM[T entity.Entity](repo RestRepository[entity.Model[T], T]) *ORM[T] {
+func NewORM[T entity.Entity](repo RestRepository[entity.DatabaseModel[T], T]) *ORM[T] {
 	return &ORM[T]{
 		Repo: repo,
 	}

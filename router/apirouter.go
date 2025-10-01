@@ -14,14 +14,26 @@ import (
 	"github.com/philiphil/restman/security"
 )
 
+// SubresourceRegistrar is an interface that any ApiRouter must implement
+// to allow registration of its routes with a parent router
+type SubresourceRegistrar interface {
+	// RegisterSubroutes registers all routes for this subresource under the given parent route
+	RegisterSubroutes(router *gin.Engine, parentRoute string)
+	// GetSubresourceName returns the name of this subresource (used in URL path)
+	GetSubresourceName() string
+}
+
 // An ApiRouter is the main object to create a REST API
 // It is composed of an ORM, a list of Allow methods, a list of firewalls and a route
 // To create an ApiRouter, you should use the NewApiRouter function
 type ApiRouter[T entity.Entity] struct {
-	Orm           orm.ORM[T]
-	Routes        map[route.RouteType]route.Route
-	Firewalls     []security.Firewall
+	Orm       orm.ORM[T]
+	Routes    map[route.RouteType]route.Route
+	Firewalls []security.Firewall
+
 	Configuration map[configuration.ConfigurationType]configuration.Configuration
+
+	Subresources []SubresourceRegistrar
 }
 
 // AllowRoutes is a function that adds the route to the gin router
@@ -67,6 +79,12 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 		case route.Trace:
 		case route.Undefined:
 		}
+	}
+
+	// Register all subresources
+	baseroute := r.Route()
+	for _, subresource := range r.Subresources {
+		subresource.RegisterSubroutes(router, baseroute)
 	}
 }
 
@@ -158,4 +176,73 @@ func (r *ApiRouter[T]) Route(routeType ...route.RouteType) (name string) {
 
 func (r *ApiRouter[T]) AddFirewall(firewall ...security.Firewall) {
 	r.Firewalls = append(r.Firewalls, firewall...)
+}
+
+// AddSubresource adds a subresource to this ApiRouter
+// The subresource routes will be registered under the parent route with /:id/ prefix
+func (r *ApiRouter[T]) AddSubresource(subresource SubresourceRegistrar) {
+	r.Subresources = append(r.Subresources, subresource)
+}
+
+// GetSubresourceName returns the name of this resource (used when registered as a subresource)
+func (r *ApiRouter[T]) GetSubresourceName() string {
+	routeName, _ := r.GetConfiguration(configuration.RouteNameType)
+	return routeName.Values[0]
+}
+
+// RegisterSubroutes registers all routes for this ApiRouter as a subresource under the given parent route
+func (r *ApiRouter[T]) RegisterSubroutes(router *gin.Engine, parentRoute string) {
+	//Batch Get and Bast Post shares the same route as GetList and Post
+	//we dont want to register the route twice
+	getList, post := false, false
+
+	subresourceName := r.GetSubresourceName()
+
+	// Always use "id" for all parameters to avoid gin routing conflicts
+	paramName := "id"
+	itemParamName := "id"
+
+	baseRoute := parentRoute + "/:" + paramName + "/" + subresourceName
+
+	for _, route_ := range r.Routes {
+		switch route_.RouteType {
+		case route.Get:
+			router.GET(baseRoute+"/:"+itemParamName, r.Get)
+		case route.BatchGet, route.GetList:
+			if !getList {
+				router.GET(baseRoute, r.GetListOrBatchGet)
+				getList = true
+			}
+		case route.BatchPost, route.Post:
+			if !post {
+				router.POST(baseRoute, r.Post)
+				post = true
+			}
+		case route.Put:
+			router.PUT(baseRoute+"/:"+itemParamName, r.Put)
+		case route.Patch:
+			router.PATCH(baseRoute+"/:"+itemParamName, r.Patch)
+		case route.Delete:
+			router.DELETE(baseRoute+"/:"+itemParamName, r.Delete)
+		case route.Head:
+			router.HEAD(baseRoute+"/:"+itemParamName, r.Head)
+		case route.Options:
+			router.OPTIONS(baseRoute+"/:"+itemParamName, r.Options)
+			router.OPTIONS(baseRoute, r.Options)
+		case route.BatchDelete:
+			router.DELETE(baseRoute, r.batchDelete)
+		case route.BatchPatch:
+			router.PATCH(baseRoute, r.BatchPatch)
+		case route.BatchPut:
+			router.PUT(baseRoute, r.BatchPut)
+		case route.Connect:
+		case route.Trace:
+		case route.Undefined:
+		}
+	}
+
+	// Recursively register nested subresources
+	for _, sub := range r.Subresources {
+		sub.RegisterSubroutes(router, baseRoute)
+	}
 }

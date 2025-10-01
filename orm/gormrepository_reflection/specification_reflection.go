@@ -1,10 +1,11 @@
-package gormrepository
+package gormrepository_reflection
 
 import (
 	"fmt"
 	"strings"
 )
 
+// Specification interface remains the same as it's not generic
 type Specification interface {
 	GetQuery() string
 	GetValues() []any
@@ -63,78 +64,81 @@ func Not(specification Specification) Specification {
 	}
 }
 
-type binaryOperatorSpecification[T any] struct {
+// binaryOperatorSpecification now uses `any` for value type as generics are removed.
+// The actual type checking or conversion might need to happen at runtime if specific GORM features depend on it,
+// but for query building with '?', `any` is generally fine.
+type binaryOperatorSpecification struct {
 	field    string
 	operator string
-	value    T
+	value    any // Changed from generic T to any
 }
 
-func (s binaryOperatorSpecification[T]) GetQuery() string {
+func (s binaryOperatorSpecification) GetQuery() string {
 	return fmt.Sprintf("%s %s ?", s.field, s.operator)
 }
 
-func (s binaryOperatorSpecification[T]) GetValues() []any {
+func (s binaryOperatorSpecification) GetValues() []any {
 	return []any{s.value}
 }
 
-func Equal[T any](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func Equal(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "=",
 		value:    value,
 	}
 }
 
-func GreaterThan[T comparable](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func GreaterThan(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: ">",
 		value:    value,
 	}
 }
 
-func GreaterOrEqual[T comparable](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func GreaterOrEqual(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: ">=",
 		value:    value,
 	}
 }
 
-func LessThan[T comparable](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func LessThan(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "<",
 		value:    value,
 	}
 }
 
-func LessOrEqual[T comparable](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func LessOrEqual(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "<=",
 		value:    value,
 	}
 }
 
-func In[T any](field string, value []T) Specification {
-	return binaryOperatorSpecification[[]T]{
+func In(field string, value []any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "IN",
-		value:    value,
+		value:    value, // value is already []any, matching the struct field
 	}
 }
 
-func Like[T any](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func Like(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "LIKE",
 		value:    value,
 	}
 }
 
-func Ilike[T any](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
+func Ilike(field string, value any) Specification {
+	return binaryOperatorSpecification{
 		field:    field,
 		operator: "ILIKE",
 		value:    value,
