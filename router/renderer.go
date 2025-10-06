@@ -16,8 +16,8 @@ type SerializerRenderer struct {
 var (
 	jsonContentType   = []string{"application/json; charset=utf-8"}
 	jsonldContentType = []string{"application/ld-json; charset=utf-8"}
-	//xmlContentType    = []string{"application/xml; charset=utf-8"}
-	//csvContentType    = []string{"text/csv"}
+	xmlContentType    = []string{"application/xml; charset=utf-8"}
+	csvContentType    = []string{"text/csv"}
 )
 
 // Render
@@ -40,9 +40,9 @@ func (r SerializerRenderer) WriteContentType(w http.ResponseWriter) {
 	case format.JSONLD:
 		writeContentType(w, jsonldContentType)
 	case format.XML:
-		//	writeContentType(w, xmlContentType)
+		writeContentType(w, xmlContentType)
 	case format.CSV:
-		//	writeContentType(w, csvContentType)
+		writeContentType(w, csvContentType)
 	}
 }
 
