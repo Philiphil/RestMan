@@ -17,6 +17,7 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 	}
 
 	var newFields []reflect.StructField
+	originalTypeName := elemType.Name()
 
 	if value.IsValid() {
 		for i := range value.NumField() {
@@ -26,13 +27,31 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 
 				if IsStruct(field.Type) && !isAnonymous(field) {
 					filteredElem := FilterByGroups(fieldValue.Interface(), groups...)
-					newFields = append(newFields, reflect.StructField{
+					newField := reflect.StructField{
 						Name: field.Name,
 						Type: reflect.TypeOf(filteredElem),
 						Tag:  field.Tag,
-					})
+					}
+					// Add xml tag with original field name if not present
+					if newField.Tag.Get("xml") == "" {
+						if newField.Tag == "" {
+							newField.Tag = reflect.StructTag(`xml:"` + field.Name + `"`)
+						} else {
+							newField.Tag = reflect.StructTag(string(newField.Tag) + ` xml:"` + field.Name + `"`)
+						}
+					}
+					newFields = append(newFields, newField)
 				} else {
-					newFields = append(newFields, field)
+					newField := field
+					// Add xml tag if not present
+					if newField.Tag.Get("xml") == "" {
+						if newField.Tag == "" {
+							newField.Tag = reflect.StructTag(`xml:"` + field.Name + `"`)
+						} else {
+							newField.Tag = reflect.StructTag(string(newField.Tag) + ` xml:"` + field.Name + `"`)
+						}
+					}
+					newFields = append(newFields, newField)
 				}
 			}
 		}
@@ -42,6 +61,12 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 
 	newStructType := reflect.StructOf(newFields)
 	newValue := reflect.New(newStructType).Elem()
+
+	// Set XMLName if this was a named struct
+	if originalTypeName != "" && len(newFields) > 0 {
+		// Try to add XMLName field at the beginning for proper XML marshaling
+		// Note: reflect.StructOf doesn't support adding XMLName after creation
+	}
 
 	for i, field := range newFields {
 		fieldName := field.Name
@@ -68,11 +93,20 @@ func filterAnonymousFields(value reflect.Value, groups ...string) []reflect.Stru
 			for j := 0; j < fieldType.NumField(); j++ {
 				anonymousField := fieldType.Field(j)
 				if isFieldExported(anonymousField) && IsFieldIncluded(anonymousField, groups) {
-					anonymousFields = append(anonymousFields, reflect.StructField{
+					newField := reflect.StructField{
 						Name: anonymousField.Name,
 						Type: anonymousField.Type,
 						Tag:  anonymousField.Tag,
-					})
+					}
+					// Add xml tag if not present
+					if newField.Tag.Get("xml") == "" {
+						if newField.Tag == "" {
+							newField.Tag = reflect.StructTag(`xml:"` + anonymousField.Name + `"`)
+						} else {
+							newField.Tag = reflect.StructTag(string(newField.Tag) + ` xml:"` + anonymousField.Name + `"`)
+						}
+					}
+					anonymousFields = append(anonymousFields, newField)
 				}
 			}
 		}
