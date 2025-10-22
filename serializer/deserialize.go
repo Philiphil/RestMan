@@ -10,6 +10,7 @@ import (
 
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/serializer/filter"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // Deserialize converts a string representation into an object in the configured format.
@@ -26,6 +27,8 @@ func (s *Serializer) Deserialize(data string, obj any) error {
 		return s.deserializeXML(data, obj)
 	case format.CSV:
 		return s.deserializeCSV(data, obj)
+	case format.MESSAGEPACK:
+		return s.deserializeMessagePack(data, obj)
 	default:
 		return fmt.Errorf("unsupported format: %s", s.Format)
 	}
@@ -324,4 +327,8 @@ func setFieldFromString(field reflect.Value, value string) error {
 		return fmt.Errorf("unsupported field type: %s", field.Kind())
 	}
 	return nil
+}
+
+func (s *Serializer) deserializeMessagePack(data string, obj any) error {
+	return msgpack.Unmarshal([]byte(data), obj)
 }
