@@ -88,6 +88,8 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 	}
 }
 
+// ConvertToSnakeCase converts a camelCase or PascalCase string to snake_case.
+// Example: "BookTitle" becomes "book_title".
 func ConvertToSnakeCase(input string) string {
 	runes := []rune(input)
 	if len(runes) == 0 {
@@ -156,6 +158,7 @@ func NewApiRouter[T entity.Entity](orm orm.ORM[T], routes map[route.RouteType]ro
 	return router
 }
 
+// TrimSlash removes leading and trailing slashes from a string.
 func TrimSlash(s string) string {
 	return strings.TrimSuffix(strings.TrimPrefix(s, "/"), "/")
 }
@@ -174,6 +177,7 @@ func (r *ApiRouter[T]) Route(routeType ...route.RouteType) (name string) {
 	return name
 }
 
+// AddFirewall adds one or more firewalls to this ApiRouter for authentication and authorization.
 func (r *ApiRouter[T]) AddFirewall(firewall ...security.Firewall) {
 	r.Firewalls = append(r.Firewalls, firewall...)
 }

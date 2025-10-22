@@ -13,7 +13,7 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-// Deserializer encapsulates the deserialization logic
+// Deserialize converts a string representation into an object in the configured format.
 func (s *Serializer) Deserialize(data string, obj any) error {
 	if !isPointer(obj) {
 		return fmt.Errorf("object must be pointer")
@@ -95,8 +95,7 @@ func (s *Serializer) deserializeXML(data string, obj any) error {
 	return xml.Unmarshal([]byte(data), obj)
 }
 
-// MergeObjects merges two objects together
-// Both target and source must be pointers
+// MergeObjects merges source object fields into target object, both must be pointers.
 func (s *Serializer) MergeObjects(target any, source any) error {
 	targetValue := reflect.ValueOf(target)
 	sourceValue := reflect.ValueOf(source)
@@ -179,6 +178,7 @@ func shouldExclude(field reflect.Value) bool {
 	return false
 }
 
+// DeserializeAndMerge deserializes data and merges it into the target object.
 func (s *Serializer) DeserializeAndMerge(data string, target any) error {
 	source := reflect.New(reflect.TypeOf(target).Elem()).Interface()
 

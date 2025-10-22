@@ -9,11 +9,13 @@ import (
 	"github.com/philiphil/restman/format"
 )
 
+// MediaType represents a media type with its quality weight from the Accept header.
 type MediaType struct {
 	Type   string
 	Weight float64
 }
 
+// ParseAcceptHeader parses the Accept HTTP header and returns the most preferred supported format.
 func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 	if acceptHeader == "" {
 		return format.JSON, nil
@@ -55,6 +57,7 @@ func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 	return format.Undefined, errors.ErrNotAcceptable
 }
 
+// ParseTypeFromString converts a media type string to a Format constant.
 func ParseTypeFromString(str string) format.Format {
 	if str == "" {
 		return format.Undefined

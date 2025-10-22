@@ -12,7 +12,7 @@ type Serializer struct {
 	Format format.Format
 }
 
-// NewSerializer creates a new instance of Serializer
+// NewSerializer creates a new Serializer instance with the specified format.
 func NewSerializer(format format.Format) *Serializer {
 	return &Serializer{Format: format}
 }

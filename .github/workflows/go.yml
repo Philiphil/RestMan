@@ -17,12 +17,19 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
+        # Note: Project requires Go 1.24+ but using 1.23 for CI until 1.24 is stable
         go-version: '1.23'
+        check-latest: true
 
     - name: Build
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v -short ./...
+
+    - name: Test with Coverage
+      run: |
+        go test -short -coverprofile=coverage.out ./... -coverpkg=./...
+        go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $3}'

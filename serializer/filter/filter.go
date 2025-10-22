@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// FilterByGroups filters an object's fields based on the provided serialization groups.
 func FilterByGroups[T any](obj T, groups ...string) T {
 	value := reflect.ValueOf(obj)
 	elemType := value.Type()

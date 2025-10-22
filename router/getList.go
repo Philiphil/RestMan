@@ -12,6 +12,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// IsPaginationEnabled determines whether pagination should be enabled for the current request based on configuration and query parameters.
 func (r *ApiRouter[T]) IsPaginationEnabled(c *gin.Context) (bool, error) {
 	paginationConf, err := r.GetConfiguration(configuration.PaginationType, route.GetList)
 	if err != nil {
@@ -39,6 +40,7 @@ func (r *ApiRouter[T]) IsPaginationEnabled(c *gin.Context) (bool, error) {
 	return strconv.ParseBool(c.DefaultQuery(forcedParameterConf.Values[0], paginationConf.Values[0]))
 }
 
+// GetPage extracts the page number from the request query parameters and returns it as a zero-indexed value.
 func (r *ApiRouter[T]) GetPage(c *gin.Context) (int, error) {
 	pageParameter, err := r.GetConfiguration(configuration.PageParameterNameType, route.GetList)
 	if err != nil {
@@ -51,6 +53,7 @@ func (r *ApiRouter[T]) GetPage(c *gin.Context) (int, error) {
 	return page - 1, nil
 }
 
+// GetItemPerPage extracts the items per page value from request query parameters, enforcing the configured maximum limit.
 func (r *ApiRouter[T]) GetItemPerPage(c *gin.Context) (int, error) {
 	defaultItemPerPage, err := r.GetConfiguration(configuration.ItemPerPageType, route.GetList)
 	if err != nil {
@@ -75,6 +78,7 @@ func (r *ApiRouter[T]) GetItemPerPage(c *gin.Context) (int, error) {
 	return itemPerPage, err
 }
 
+// GetSortOrder extracts sorting parameters from the request, validating against allowed fields and returning a map of field names to sort directions.
 func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
 	sortParams := make(map[string]string)
 
@@ -116,7 +120,7 @@ func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
 	queryParams := c.QueryMap(sortParam.Values[0])
 	for field, order := range queryParams {
 		order = strings.ToUpper(order)
-		if order != "ASC" && order != "DESC" || !slices.Contains(SortableFields.Values, field) {
+		if (order != "ASC" && order != "DESC") || !slices.Contains(SortableFields.Values, field) {
 			return nil, errors.ErrBadRequest
 		}
 		sortParams[field] = order
@@ -128,6 +132,7 @@ func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
 	return sortParams, nil
 }
 
+// GetList handles HTTP GET requests to retrieve a collection of entities with optional pagination and sorting.
 func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	paginate, err := r.IsPaginationEnabled(c)
 	if err != nil {

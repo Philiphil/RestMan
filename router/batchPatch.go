@@ -8,6 +8,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// BatchPatch handles PATCH requests for multiple entities, partially updating existing entities.
 func (r *ApiRouter[T]) BatchPatch(c *gin.Context) {
 	var entities []*T
 	if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {

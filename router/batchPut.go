@@ -8,6 +8,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// BatchPut handles PUT requests for multiple entities, fully replacing existing entities.
 func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	var entities []*T
 	if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {

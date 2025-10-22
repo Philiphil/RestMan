@@ -10,9 +10,8 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
-// what is the difference between BatchGet and GetList?
-// BatchGet is a route that returns a list of objects using given ids
-// GetList is a route that returns a list of objects using pagination
+// IsBatchGetOrGetList determines whether the request is a BatchGet or GetList operation.
+// BatchGet returns a list of objects using given ids, while GetList returns paginated results.
 func (r *ApiRouter[T]) IsBatchGetOrGetList(c *gin.Context) route.RouteType {
 	//first if BatchGet or GetList is not allowed, it is not a BatchGet or GetList
 	if _, ok := r.Routes[route.BatchGet]; !ok {
@@ -34,6 +33,7 @@ func (r *ApiRouter[T]) IsBatchGetOrGetList(c *gin.Context) route.RouteType {
 	return route.GetList
 }
 
+// GetListOrBatchGet routes the request to either BatchGet or GetList based on query parameters.
 func (r *ApiRouter[T]) GetListOrBatchGet(c *gin.Context) {
 	rr := r.IsBatchGetOrGetList(c)
 	if rr == route.BatchGet {
@@ -43,6 +43,8 @@ func (r *ApiRouter[T]) GetListOrBatchGet(c *gin.Context) {
 	}
 }
 
+// GetIds extracts the list of IDs from query parameters for batch operations.
+// Supports both array notation (ids[]=1&ids[]=2) and comma-separated (ids=1,2,3).
 func (r *ApiRouter[T]) GetIds(c *gin.Context) []string {
 	ids, _ := r.GetConfiguration(configuration.BatchIdsParameterNameType, route.BatchGet)
 	idsParameter := ids.Values[0]
@@ -58,6 +60,7 @@ func (r *ApiRouter[T]) GetIds(c *gin.Context) []string {
 	return idsValues
 }
 
+// BatchGet handles GET requests for multiple entities by their IDs.
 func (r *ApiRouter[T]) BatchGet(c *gin.Context) {
 	idsValues := r.GetIds(c)
 

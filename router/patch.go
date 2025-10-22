@@ -6,6 +6,7 @@ import (
 	"github.com/philiphil/restman/orm/entity"
 )
 
+// Patch handles HTTP PATCH requests to partially update an existing entity.
 func (r *ApiRouter[T]) Patch(c *gin.Context) {
 	id := c.Param("id")
 	obj, err := r.Orm.GetByID(id)

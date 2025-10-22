@@ -9,6 +9,7 @@ import (
 	"github.com/philiphil/restman/serializer"
 )
 
+// UnserializeBodyAndMerge deserializes the request body and merges it with the provided entity.
 func UnserializeBodyAndMerge[T any](c *gin.Context, e *T) error {
 	serializedData, err := io.ReadAll(c.Request.Body)
 	bodyReader := bytes.NewReader(serializedData)
@@ -24,6 +25,7 @@ func UnserializeBodyAndMerge[T any](c *gin.Context, e *T) error {
 	return nil
 }
 
+// UnserializeBodyAndMerge_A deserializes the request body as an array and merges it with the provided entity slice.
 func UnserializeBodyAndMerge_A[T any](c *gin.Context, e *[]*T) error {
 	serializedData, err := io.ReadAll(c.Request.Body)
 	bodyReader := bytes.NewReader(serializedData)

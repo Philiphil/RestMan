@@ -6,6 +6,7 @@ import (
 	"github.com/philiphil/restman/orm/entity"
 )
 
+// Put handles HTTP PUT requests to replace or create an entity at a specific ID.
 func (r *ApiRouter[T]) Put(c *gin.Context) {
 	id := c.Param("id")
 	obj, err := r.Orm.GetByID(id)

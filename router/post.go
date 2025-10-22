@@ -7,6 +7,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// Post handles HTTP POST requests to create one or more new entities.
 func (r *ApiRouter[T]) Post(c *gin.Context) {
 	single := true
 	var entities []*T

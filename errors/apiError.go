@@ -13,6 +13,7 @@ type ApiError struct {
 	Blocking bool
 }
 
+// Error implements the error interface for ApiError.
 func (f ApiError) Error() string {
 	return f.Message
 }

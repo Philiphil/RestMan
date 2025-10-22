@@ -1,5 +1,6 @@
 package format
 
+// Format represents a content type format string.
 type Format string
 
 // Const of default formats handled by RestMan

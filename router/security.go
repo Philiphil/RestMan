@@ -6,6 +6,7 @@ import (
 	"github.com/philiphil/restman/security"
 )
 
+// FirewallCheck executes all configured firewalls to authenticate and retrieve the current user.
 func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.User, error) {
 	var user security.User
 	var err error
@@ -24,6 +25,7 @@ func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.User, error) {
 	return user, nil
 }
 
+// ReadingCheck verifies that the authenticated user has permission to read the specified object.
 func (r *ApiRouter[T]) ReadingCheck(c *gin.Context, object *T) error {
 	user, err := r.FirewallCheck(c)
 	if err != nil {
@@ -40,6 +42,7 @@ func (r *ApiRouter[T]) ReadingCheck(c *gin.Context, object *T) error {
 	return nil
 }
 
+// WritingCheck verifies that the authenticated user has permission to modify the specified object.
 func (r *ApiRouter[T]) WritingCheck(c *gin.Context, object *T) error {
 	user, err := r.FirewallCheck(c)
 	if err != nil {

@@ -99,6 +99,7 @@ func marshalXMLFiltered(e *xml.Encoder, start xml.StartElement, value reflect.Va
 	return e.EncodeToken(start.End())
 }
 
+// Serialize converts an object to a string representation in the configured format.
 func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 	switch s.Format {
 	case format.JSON:

@@ -7,6 +7,7 @@ import (
 	"github.com/philiphil/restman/security"
 )
 
+// HandleCaching sets appropriate Cache-Control and Etag headers based on route configuration.
 func (r *ApiRouter[T]) HandleCaching(route route.RouteType, c *gin.Context) {
 	entity := r.Orm.NewEntity()
 	visibility := "public"
