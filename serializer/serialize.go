@@ -1,6 +1,7 @@
 package serializer
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"encoding/xml"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/serializer/filter"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type xmlFilterWrapper struct {
@@ -107,6 +109,8 @@ func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 		return s.serializeXML(obj, groups...)
 	case format.CSV:
 		return s.serializeCSV(obj, groups...)
+	case format.MESSAGEPACK:
+		return s.serializeMessagePack(obj, groups...)
 	default:
 		return "", fmt.Errorf("unsupported format: %s", s.Format)
 	}
@@ -228,4 +232,15 @@ func writeCSVToString(rows [][]string) (string, error) {
 		return "", err
 	}
 	return sb.String(), nil
+}
+
+func (s *Serializer) serializeMessagePack(obj any, groups ...string) (string, error) {
+	data := filter.FilterByGroups(obj, groups...)
+	var buf bytes.Buffer
+	encoder := msgpack.NewEncoder(&buf)
+	encoder.SetCustomStructTag("json")
+	if err := encoder.Encode(data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
