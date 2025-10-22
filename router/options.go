@@ -5,6 +5,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// Options handles HTTP OPTIONS requests to return allowed HTTP methods for the resource.
 func (r *ApiRouter[T]) Options(c *gin.Context) {
 	allowed := ""
 	for _, method := range r.Routes {

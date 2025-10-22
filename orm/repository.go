@@ -5,8 +5,7 @@ import (
 	"github.com/philiphil/restman/orm/entity"
 )
 
-//RestRepository
-
+// RestRepository defines the interface for database operations on entities.
 type RestRepository[M entity.DatabaseModel[E], E entity.Entity] interface {
 	Create(entities []*E) error
 	Read(ids []entity.ID) ([]*E, error)

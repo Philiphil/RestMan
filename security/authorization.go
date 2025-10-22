@@ -9,8 +9,9 @@ import (
 // it takes a user and an entity and returns a boolean
 type AuthorizationFunction func(User, entity.Entity) bool
 
-// AuthorizationRequired is a default implementation of the AuthorizationFunction
+// AuthenticationRequired is a default implementation of the AuthorizationFunction
 // it always returns true because it is reached only if the user is authenticated
+// AuthenticationRequired validates that a user is authenticated before accessing an entity.
 func AuthenticationRequired(user User, object entity.Entity) bool {
 	return true
 }

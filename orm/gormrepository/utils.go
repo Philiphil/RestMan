@@ -1,5 +1,6 @@
 package gormrepository
 
+// ChunkSlice splits a slice into smaller chunks of the specified size.
 func ChunkSlice[T any](slice []T, chunkSize int) [][]T {
 	var chunks [][]T
 	for i := 0; i < len(slice); i += chunkSize {

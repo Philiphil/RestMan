@@ -7,6 +7,7 @@ import (
 	"github.com/philiphil/restman/route"
 )
 
+// Get handles HTTP GET requests to retrieve a single entity by ID.
 func (r *ApiRouter[T]) Get(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Param("id"))
 	if err != nil {

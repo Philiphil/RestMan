@@ -2,6 +2,7 @@ package route
 
 import "fmt"
 
+// RouteType represents the type of HTTP route operation.
 type RouteType int8
 
 const (
@@ -28,6 +29,7 @@ const (
 	BatchDelete
 )
 
+// String returns the HTTP method name for the RouteType.
 func (e RouteType) String() string {
 	switch e {
 	case Patch:

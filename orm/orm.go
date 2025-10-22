@@ -12,16 +12,19 @@ type ORM[T entity.Entity] struct {
 	Repo RestRepository[entity.DatabaseModel[T], T]
 }
 
+// NewORM creates a new ORM instance with the provided repository.
 func NewORM[T entity.Entity](repo RestRepository[entity.DatabaseModel[T], T]) *ORM[T] {
 	return &ORM[T]{
 		Repo: repo,
 	}
 }
 
+// GetAll retrieves all entities from the repository with optional sorting.
 func (r *ORM[T]) GetAll(sort map[string]string) ([]T, error) {
 	return r.Repo.List(-1, -1, sort)
 }
 
+// GetByID retrieves a single entity by its ID.
 func (r *ORM[T]) GetByID(id any) (*T, error) {
 	elem, err := r.Repo.Read([]entity.ID{entity.CastId(id)})
 
@@ -34,26 +37,32 @@ func (r *ORM[T]) GetByID(id any) (*T, error) {
 	return elem[0], nil
 }
 
+// GetPaginatedList retrieves a paginated list of entities with optional sorting.
 func (r *ORM[T]) GetPaginatedList(itemPerPage int, page int, sort map[string]string) ([]T, error) {
 	return r.Repo.List(itemPerPage, itemPerPage*page, sort)
 }
 
+// Count returns the total number of entities in the repository.
 func (r *ORM[T]) Count() (int64, error) {
 	return r.Repo.Count()
 }
 
+// Create persists one or more new entities to the repository.
 func (r *ORM[T]) Create(item ...*T) error {
 	return r.Repo.Create(item)
 }
 
+// Update modifies one or more existing entities in the repository.
 func (r *ORM[T]) Update(item ...*T) error {
 	return r.Repo.Update(item)
 }
 
+// Delete removes one or more entities from the repository.
 func (r *ORM[T]) Delete(item ...*T) error {
 	return r.Repo.Delete(item)
 }
 
+// FindByIDs retrieves multiple entities by their IDs, returning an error if not all are found.
 func (r *ORM[T]) FindByIDs(ids []entity.ID) ([]*T, error) {
 	list, err := r.Repo.Read(ids)
 	if err != nil {
@@ -65,6 +74,7 @@ func (r *ORM[T]) FindByIDs(ids []entity.ID) ([]*T, error) {
 	return list, nil
 }
 
+// NewEntity creates a new empty entity instance.
 func (r *ORM[T]) NewEntity() T {
 	return r.Repo.New()
 }

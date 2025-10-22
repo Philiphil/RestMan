@@ -10,6 +10,7 @@ import (
 	"github.com/philiphil/restman/serializer"
 )
 
+// Head handles HTTP HEAD requests to retrieve entity metadata without the response body.
 func (r *ApiRouter[T]) Head(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Param("id"))
 	if err != nil {

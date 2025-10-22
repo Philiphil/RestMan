@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// JsonldCollection creates a Hydra-compliant JSON-LD collection with pagination metadata.
 func JsonldCollection[T any](items []T, currentUrl string, currentPage int, params map[string]string, maxpage int) (m map[string]any) {
 	m = map[string]any{}
 	m["hydra:totalItems"] = len(items)
@@ -39,6 +40,7 @@ func JsonldCollection[T any](items []T, currentUrl string, currentPage int, para
 	return m
 }
 
+// Max returns the maximum value from the provided integers.
 func Max(vars ...int) int {
 	max := vars[0]
 

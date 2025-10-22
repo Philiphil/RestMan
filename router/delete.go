@@ -5,6 +5,7 @@ import (
 	"github.com/philiphil/restman/errors"
 )
 
+// Delete handles HTTP DELETE requests to remove a single entity by ID.
 func (r *ApiRouter[T]) Delete(c *gin.Context) {
 	id := c.Param("id")
 	object, err := r.Orm.GetByID(id)

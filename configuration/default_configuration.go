@@ -1,6 +1,6 @@
 package configuration
 
-// This is the default configuration used by an ApiRouter
+// DefaultConfiguration returns the default configuration map used by an ApiRouter.
 func DefaultConfiguration() map[ConfigurationType]Configuration {
 	return map[ConfigurationType]Configuration{
 		RoutePrefixType:              RoutePrefix("api"),

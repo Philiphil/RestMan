@@ -12,13 +12,13 @@ type WritingRights interface {
 	GetWritingRights() AuthorizationFunction
 }
 
-// Check if the object implements the ReadingRights interface
+// HasReadingRights checks if the object implements the ReadingRights interface.
 func HasReadingRights(obj any) (ReadingRights, bool) {
 	rr, ok := obj.(ReadingRights)
 	return rr, ok
 }
 
-// Check if the object implements the WritingRights interface
+// HasWritingRights checks if the object implements the WritingRights interface.
 func HasWritingRights(obj any) (WritingRights, bool) {
 	rr, ok := obj.(WritingRights)
 	return rr, ok

@@ -1,0 +1,96 @@
+# RestMan - Coverage Configuration
+
+This file explains how to use coverage in RestMan.
+
+## Why this file exists
+
+RestMan has a particular test structure: tests are in separate `/test/` folders instead of being co-located with source code (e.g., `router_test.go` next to `router.go`).
+
+This structure is intentional as it clearly separates production code from tests, but it requires a special command for coverage.
+
+## The problem
+
+If you simply run `go test -cover ./...`, Go only calculates coverage for packages **containing tests**, not the source code. Result: 0% coverage displayed even though tests pass.
+
+## The solution
+
+Use the `-coverpkg=./...` flag which tells Go: "calculate coverage for ALL packages, not just those with tests".
+
+## Commands to use
+
+### Basic coverage (terminal)
+```bash
+go test -coverprofile=coverage.out ./... -coverpkg=./...
+go tool cover -func=coverage.out
+```
+
+Displays something like:
+```
+github.com/philiphil/restman/router/get.go:15:        Get             100.0%
+github.com/philiphil/restman/router/post.go:20:       Post            85.7%
+total:                                                 (statements)    69.5%
+```
+
+### Visual coverage (HTML)
+```bash
+go test -coverprofile=coverage.out ./... -coverpkg=./...
+go tool cover -html=coverage.out -o coverage.html
+open coverage.html  # macOS
+```
+
+Opens an interactive HTML report showing line by line what is tested (green) or not (red).
+
+### Coverage for a specific package
+```bash
+# Router only
+go test -coverprofile=coverage.out ./test/router/... -coverpkg=./...
+go tool cover -func=coverage.out
+
+# Serializer only
+go test -coverprofile=coverage.out ./test/serializer/... -coverpkg=./...
+go tool cover -func=coverage.out
+```
+
+### Clean cache before testing
+```bash
+go clean -testcache && go test -coverprofile=coverage.out ./... -coverpkg=./...
+```
+
+Useful if tests seem "cached" or if changes are not being picked up.
+
+## For CI/CD
+
+GitHub Actions example:
+```yaml
+- name: Test with coverage
+  run: |
+    go test -race -coverprofile=coverage.out -covermode=atomic ./... -coverpkg=./...
+    go tool cover -func=coverage.out
+
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v3
+  with:
+    files: ./coverage.out
+```
+
+## Coverage targets
+
+- **Core packages** (router, orm, serializer): > 80%
+- **Utilities** (configuration, format, errors): > 70%
+- **Global**: > 65%
+
+## Current results (Jan 2025)
+
+- `router`: **69.5%** ✅
+- `orm/gormrepository`: **~8%** ⚠️ (tests exist but incomplete)
+- `serializer`: **~23%** ⚠️
+
+## Why `-coverpkg=./...`?
+
+Without this flag:
+- `go test ./test/router/...` → calculates coverage of `test/router` (which only has tests, 0 LOC of business code)
+
+With this flag:
+- `go test ./test/router/... -coverpkg=./...` → calculates coverage of the ENTIRE project, even if tests are elsewhere
+
+It's the equivalent of saying "run tests from test/router/, but measure coverage of router/, orm/, serializer/, etc."

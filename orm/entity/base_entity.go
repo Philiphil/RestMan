@@ -16,10 +16,12 @@ type BaseEntity struct {
 	Description string         `json:"description"`
 }
 
+// GetId returns the entity's ID.
 func (e BaseEntity) GetId() ID {
 	return e.Id
 }
 
+// SetId sets the entity's ID and returns the entity.
 func (e BaseEntity) SetId(id any) Entity {
 	e.Id = CastId(id)
 	return e

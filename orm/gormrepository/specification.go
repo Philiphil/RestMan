@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Specification defines the interface for query specifications used to filter database queries.
 type Specification interface {
 	GetQuery() string
 	GetValues() []any
@@ -35,6 +36,7 @@ func (s joinSpecification) GetValues() []any {
 	return values
 }
 
+// And combines multiple specifications with the AND logical operator.
 func And(specifications ...Specification) Specification {
 	return joinSpecification{
 		specifications: specifications,
@@ -42,6 +44,7 @@ func And(specifications ...Specification) Specification {
 	}
 }
 
+// Or combines multiple specifications with the OR logical operator.
 func Or(specifications ...Specification) Specification {
 	return joinSpecification{
 		specifications: specifications,
@@ -57,6 +60,7 @@ func (s notSpecification) GetQuery() string {
 	return fmt.Sprintf(" NOT (%s)", s.Specification.GetQuery())
 }
 
+// Not negates a specification with the NOT logical operator.
 func Not(specification Specification) Specification {
 	return notSpecification{
 		specification,
@@ -77,6 +81,7 @@ func (s binaryOperatorSpecification[T]) GetValues() []any {
 	return []any{s.value}
 }
 
+// Equal creates a specification for equality comparison.
 func Equal[T any](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -85,6 +90,7 @@ func Equal[T any](field string, value T) Specification {
 	}
 }
 
+// GreaterThan creates a specification for greater-than comparison.
 func GreaterThan[T comparable](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -93,6 +99,7 @@ func GreaterThan[T comparable](field string, value T) Specification {
 	}
 }
 
+// GreaterOrEqual creates a specification for greater-than-or-equal comparison.
 func GreaterOrEqual[T comparable](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -101,6 +108,7 @@ func GreaterOrEqual[T comparable](field string, value T) Specification {
 	}
 }
 
+// LessThan creates a specification for less-than comparison.
 func LessThan[T comparable](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -109,6 +117,7 @@ func LessThan[T comparable](field string, value T) Specification {
 	}
 }
 
+// LessOrEqual creates a specification for less-than-or-equal comparison.
 func LessOrEqual[T comparable](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -117,6 +126,7 @@ func LessOrEqual[T comparable](field string, value T) Specification {
 	}
 }
 
+// In creates a specification for checking if a field value is in a list.
 func In[T any](field string, value []T) Specification {
 	return binaryOperatorSpecification[[]T]{
 		field:    field,
@@ -125,6 +135,7 @@ func In[T any](field string, value []T) Specification {
 	}
 }
 
+// Like creates a specification for case-sensitive pattern matching.
 func Like[T any](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -133,6 +144,7 @@ func Like[T any](field string, value T) Specification {
 	}
 }
 
+// Ilike creates a specification for case-insensitive pattern matching.
 func Ilike[T any](field string, value T) Specification {
 	return binaryOperatorSpecification[T]{
 		field:    field,
@@ -151,9 +163,11 @@ func (s stringSpecification) GetValues() []any {
 	return nil
 }
 
+// IsNull creates a specification for checking if a field is NULL.
 func IsNull(field string) Specification {
 	return stringSpecification(fmt.Sprintf("%s IS NULL", field))
 }
+// IsNotNull creates a specification for checking if a field is NOT NULL.
 func IsNotNull(field string) Specification {
 	return stringSpecification(fmt.Sprintf("%s IS NOT NULL", field))
 }
@@ -171,6 +185,7 @@ func (s orderSpecification) GetValues() []any {
 	return nil
 }
 
+// OrderBy creates a specification for sorting results by a field and direction.
 func OrderBy(field string, direction string) Specification {
 	return orderSpecification{
 		field:     field,

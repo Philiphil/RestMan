@@ -7,13 +7,15 @@ import (
 // ID is a type that represents an entity's primary identifier
 type ID uint
 
-// create a const null id at 0
+// NullId represents a null or unset ID value.
 const NullId ID = 0
 
+// String converts the ID to its string representation.
 func (e ID) String() string {
 	return strconv.FormatUint(uint64(e), 10)
 }
 
+// CastId converts various types to an ID, returning NullId if conversion fails.
 func CastId(id any) ID {
 	switch v := id.(type) {
 	case ID:
