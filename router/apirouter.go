@@ -91,22 +91,25 @@ func (r *ApiRouter[T]) AllowRoutes(router *gin.Engine) {
 // ConvertToSnakeCase converts a camelCase or PascalCase string to snake_case.
 // Example: "BookTitle" becomes "book_title".
 func ConvertToSnakeCase(input string) string {
-	runes := []rune(input)
-	if len(runes) == 0 {
+	if input == "" {
 		return ""
 	}
 
-	runes[0] = unicode.ToLower(runes[0])
+	var builder strings.Builder
+	builder.Grow(len(input) + 5)
 
-	for i := 1; i < len(runes); i++ {
-		if unicode.IsUpper(runes[i]) {
-			runes[i] = unicode.ToLower(runes[i])
-			runes = append(runes[:i], append([]rune{'_'}, runes[i:]...)...)
-			i++
+	for i, r := range input {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				builder.WriteRune('_')
+			}
+			builder.WriteRune(unicode.ToLower(r))
+		} else {
+			builder.WriteRune(r)
 		}
 	}
 
-	return string(runes)
+	return builder.String()
 }
 
 // This function return either the router wide configuration or the route specific configuration
@@ -114,12 +117,12 @@ func ConvertToSnakeCase(input string) string {
 // If the routeType is provided, it will return the route specific configuration
 // error is returned if the configuration is not found
 // by default error should always be nil if you use NewApiRouter
-func (r *ApiRouter[T]) GetConfiguration(configuration configuration.ConfigurationType, routeType ...route.RouteType) (configuration.Configuration, error) {
-	routerValue, found := r.Configuration[configuration]
+func (r *ApiRouter[T]) GetConfiguration(configurationType configuration.ConfigurationType, routeType ...route.RouteType) (configuration.Configuration, error) {
+	routerValue, found := r.Configuration[configurationType]
 	if len(routeType) == 1 {
 		for _, route_ := range r.Routes {
 			if route_.RouteType == routeType[0] {
-				routeValue, exists := route_.Configuration[configuration]
+				routeValue, exists := route_.Configuration[configurationType]
 				if exists {
 					return routeValue, nil
 				}
@@ -164,17 +167,26 @@ func TrimSlash(s string) string {
 }
 
 // Route is a function that returns the route name for a given route type
-func (r *ApiRouter[T]) Route(routeType ...route.RouteType) (name string) {
-	name = "/"
+func (r *ApiRouter[T]) Route(routeType ...route.RouteType) string {
 	prefixs, _ := r.GetConfiguration(configuration.RoutePrefixType, routeType...)
-	for _, v := range prefixs.Values {
-		name += TrimSlash(v) + "/"
-	}
-
 	routeName, _ := r.GetConfiguration(configuration.RouteNameType, routeType...)
 
-	name += TrimSlash(routeName.Values[0])
-	return name
+	var builder strings.Builder
+	estimatedLen := 1
+	for _, v := range prefixs.Values {
+		estimatedLen += len(v) + 1
+	}
+	estimatedLen += len(routeName.Values[0])
+	builder.Grow(estimatedLen)
+
+	builder.WriteRune('/')
+	for _, v := range prefixs.Values {
+		builder.WriteString(TrimSlash(v))
+		builder.WriteRune('/')
+	}
+	builder.WriteString(TrimSlash(routeName.Values[0]))
+
+	return builder.String()
 }
 
 // AddFirewall adds one or more firewalls to this ApiRouter for authentication and authorization.
