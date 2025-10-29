@@ -16,23 +16,34 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 		value = DereferenceValueIfPointer(value)
 	}
 
+	if cachedEntry, ok := globalCache.Get(elemType, groups); ok {
+		newValue := reflect.New(cachedEntry.filteredType).Elem()
+		if len(cachedEntry.fieldMappings) > 0 {
+			populateStructFieldsFast(newValue, value, cachedEntry.fieldMappings)
+		} else {
+			populateStructFields(newValue, value, cachedEntry.filteredType, groups)
+		}
+		return newValue.Interface().(T)
+	}
+
 	var newFields []reflect.StructField
+	var mappings []fieldMapping
 	originalTypeName := elemType.Name()
 
 	if value.IsValid() {
+		destIdx := 0
 		for i := range value.NumField() {
 			field := elemType.Field(i)
-			if isFieldExported(field) && IsFieldIncluded(field, groups) {
+			if isFieldExported(field) && IsFieldIncluded(field, groups) && !isAnonymous(field) {
 				fieldValue := value.Field(i)
 
-				if IsStruct(field.Type) && !isAnonymous(field) {
+				if IsStruct(field.Type) {
 					filteredElem := FilterByGroups(fieldValue.Interface(), groups...)
 					newField := reflect.StructField{
 						Name: field.Name,
 						Type: reflect.TypeOf(filteredElem),
 						Tag:  field.Tag,
 					}
-					// Add xml tag with original field name if not present
 					if newField.Tag.Get("xml") == "" {
 						if newField.Tag == "" {
 							newField.Tag = reflect.StructTag(`xml:"` + field.Name + `"`)
@@ -41,9 +52,10 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 						}
 					}
 					newFields = append(newFields, newField)
+					mappings = append(mappings, fieldMapping{srcIndex: i, destIndex: destIdx})
+					destIdx++
 				} else {
 					newField := field
-					// Add xml tag if not present
 					if newField.Tag.Get("xml") == "" {
 						if newField.Tag == "" {
 							newField.Tag = reflect.StructTag(`xml:"` + field.Name + `"`)
@@ -52,30 +64,55 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 						}
 					}
 					newFields = append(newFields, newField)
+					mappings = append(mappings, fieldMapping{srcIndex: i, destIndex: destIdx})
+					destIdx++
 				}
 			}
 		}
 		anonymousFields := filterAnonymousFields(value, groups...)
+		if len(anonymousFields) > 0 {
+			mappings = nil
+		}
 		newFields = append(newFields, anonymousFields...)
 	}
 
 	newStructType := reflect.StructOf(newFields)
+	entry := &typeCacheEntry{
+		filteredType: newStructType,
+		fieldMappings: mappings,
+	}
+	globalCache.Set(elemType, groups, entry)
 	newValue := reflect.New(newStructType).Elem()
 
-	// Set XMLName if this was a named struct
 	if originalTypeName != "" && len(newFields) > 0 {
-		// Try to add XMLName field at the beginning for proper XML marshaling
-		// Note: reflect.StructOf doesn't support adding XMLName after creation
 	}
 
-	for i, field := range newFields {
+	if len(mappings) > 0 {
+		populateStructFieldsFast(newValue, value, mappings)
+	} else {
+		populateStructFields(newValue, value, newStructType, groups)
+	}
+
+	return newValue.Interface().(T)
+}
+
+func populateStructFieldsFast(newValue, value reflect.Value, mappings []fieldMapping) {
+	for _, mapping := range mappings {
+		srcField := value.Field(mapping.srcIndex)
+		destField := newValue.Field(mapping.destIndex)
+		destFieldType := newValue.Type().Field(mapping.destIndex)
+		assignFieldValue(destFieldType, destField, srcField)
+	}
+}
+
+func populateStructFields(newValue, value reflect.Value, structType reflect.Type, groups []string) {
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
 		fieldName := field.Name
 		fieldValue := value.FieldByName(fieldName)
 		newFieldValue := newValue.Field(i)
 		assignFieldValue(field, newFieldValue, fieldValue)
 	}
-
-	return newValue.Interface().(T)
 }
 
 func filterAnonymousFields(value reflect.Value, groups ...string) []reflect.StructField {

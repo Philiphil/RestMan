@@ -9,7 +9,8 @@ import (
 
 // Serializer is responsible for serializing and deserializing objects
 type Serializer struct {
-	Format format.Format
+	Format  format.Format
+	Compact bool
 }
 
 // NewSerializer creates a new Serializer instance with the specified format.

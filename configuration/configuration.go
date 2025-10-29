@@ -70,6 +70,9 @@ const (
 	// Whitelist to prevent sorting on sensitive or non-indexed fields
 	SortableFieldsType
 
+	GroupOverwriteClientControlType // Allows clients to overwrite serialization groups
+	GroupOverwriteParameterNameType // Query parameter name for overwriting serialization groups
+
 	// Unimplemented configuration types - reserved for future use
 	BatchLimitType            // Will limit the number of items in batch operations
 	TypeEnabledType           // Will enable/disable specific route types

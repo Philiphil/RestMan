@@ -460,7 +460,6 @@ go test ./test/router/...
 - [ ] Filtering implementation
 - [ ] Groups override parameter
 - [ ] UUID compatibility for entity.ID
-- [ ] Performance optimization for JSON serialization
 - [ ] Force lowercase option for JSON keys
 - [ ] Automatic Redis caching integration in router
 - [ ] GraphQL support

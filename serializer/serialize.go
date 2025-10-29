@@ -119,26 +119,39 @@ func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
 
 func (s *Serializer) serializeJSON(obj any, groups ...string) (string, error) {
 	data := filter.FilterByGroups(obj, groups...)
-	//data = renameFieldsToLower(data)
-	jsonBytes, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
+	encoder := json.NewEncoder(buf)
+	if !s.Compact {
+		encoder.SetIndent("", "  ")
+	}
+
+	if err := encoder.Encode(data); err != nil {
 		return "", err
 	}
-	return string(jsonBytes), nil
+
+	result := buf.String()
+	if len(result) > 0 && result[len(result)-1] == '\n' {
+		result = result[:len(result)-1]
+	}
+	return result, nil
 }
 
 func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
-	// Use custom XML marshaler that filters by groups
-	var sb strings.Builder
-	sb.WriteString(xml.Header)
+	buf := getBuffer()
+	defer putBuffer(buf)
 
-	encoder := xml.NewEncoder(&sb)
-	encoder.Indent("", "  ")
+	buf.WriteString(xml.Header)
+
+	encoder := xml.NewEncoder(buf)
+	if !s.Compact {
+		encoder.Indent("", "  ")
+	}
 
 	value := reflect.ValueOf(obj)
 	typ := value.Type()
 
-	// Determine root element name
 	rootName := "root"
 	if typ.Kind() == reflect.Struct {
 		rootName = typ.Name()
@@ -158,7 +171,7 @@ func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
 		return "", err
 	}
 
-	return sb.String(), nil
+	return buf.String(), nil
 }
 
 func (s *Serializer) serializeCSV(obj any, groups ...string) (string, error) {
@@ -223,8 +236,10 @@ func (s *Serializer) serializeCSV(obj any, groups ...string) (string, error) {
 }
 
 func writeCSVToString(rows [][]string) (string, error) {
-	sb := strings.Builder{}
-	writer := csv.NewWriter(&sb)
+	buf := getBuffer()
+	defer putBuffer(buf)
+
+	writer := csv.NewWriter(buf)
 	if err := writer.WriteAll(rows); err != nil {
 		return "", err
 	}
@@ -232,7 +247,7 @@ func writeCSVToString(rows [][]string) (string, error) {
 	if err := writer.Error(); err != nil {
 		return "", err
 	}
-	return sb.String(), nil
+	return buf.String(), nil
 }
 
 func (s *Serializer) serializeMessagePack(obj any, groups ...string) (string, error) {
