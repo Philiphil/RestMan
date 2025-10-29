@@ -35,7 +35,7 @@ func TestRouterConfiguration(t *testing.T) {
 		route.DefaultApiRoutes(),
 		configuration.RoutePrefix("api"),
 		configuration.NetworkCachingPolicy(0),
-		configuration.SerializationGroups(),
+		configuration.InputSerializationGroups(),
 		configuration.Pagination(true),
 		configuration.PaginationClientControl(false),
 		configuration.ItemPerPage(100),

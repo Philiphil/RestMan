@@ -7,6 +7,7 @@ The Configuration package provides the default behavior for ApiRouter by definin
 ## Purpose
 
 When processing requests (e.g., `GET /api/item`), ApiRouter determines how to respond (e.g., with `GetList`) based on configuration settings for:
+- router global behavior
 - Sorting
 - Pagination
 - Filtering

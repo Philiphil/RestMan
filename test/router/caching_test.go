@@ -39,8 +39,8 @@ func (e securedTest) GetReadingRights() security.AuthorizationFunction {
 }
 
 func TestApiRouter_HandleCaching(t *testing.T) {
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 		configuration.NetworkCachingPolicy(5),

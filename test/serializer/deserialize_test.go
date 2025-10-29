@@ -10,28 +10,28 @@ import (
 )
 
 type Test struct {
-	Test0 int `group:"test"`
-	Test1 int `group:"testo"`
-	Test2 int `group:"test"`
-	Test3 int `group:"testo,test"`
+	Test0 int `groups:"test"`
+	Test1 int `groups:"testo"`
+	Test2 int `groups:"test"`
+	Test3 int `groups:"testo,test"`
 	Test4 int
 	test5 int
-	Test6 int `group:"test"`
+	Test6 int `groups:"test"`
 }
 
 type Recursive struct {
-	Test1 Hidden `group:"test"`
+	Test1 Hidden `groups:"test"`
 	Test2 Hidden
 }
 type Hidden struct {
-	Test0 int `group:"test"`
+	Test0 int `groups:"test"`
 	Test1 int
 }
 
 type Ptr struct {
-	Test0 int     `group:"test"`
-	Test1 *int    `group:"test"`
-	Test2 *Hidden `group:"test"`
+	Test0 int     `groups:"test"`
+	Test1 *int    `groups:"test"`
+	Test2 *Hidden `groups:"test"`
 	Test3 *int
 	Test4 *Hidden
 }
@@ -551,10 +551,10 @@ func BenchmarkSerializer_Serialize(b *testing.B) {
 
 // todo we need better test
 type FilterStruct struct {
-	Test0 int `group:"test"`
-	Test1 int `group:"testo"`
+	Test0 int `groups:"test"`
+	Test1 int `groups:"testo"`
 	Test2 int
-	Test3 int `group:"testo,test"`
+	Test3 int `groups:"testo,test"`
 }
 
 var testedFilterStruct = FilterStruct{
@@ -566,21 +566,21 @@ var testedFilterStructDeserializedResult = FilterStruct{
 }
 
 type PrimitiveStruct struct {
-	Test0 int     `group:"test"`
-	Test1 string  `group:"test"`
-	Test2 bool    `group:"test"`
-	Test3 float64 `group:"test"`
-	Test4 int64   `group:"test"`
-	Test5 rune    `group:"test"`
+	Test0 int     `groups:"test"`
+	Test1 string  `groups:"test"`
+	Test2 bool    `groups:"test"`
+	Test3 float64 `groups:"test"`
+	Test4 int64   `groups:"test"`
+	Test5 rune    `groups:"test"`
 }
 
 type NestedStruct struct {
-	Test0 FilterStruct `group:"test"`
+	Test0 FilterStruct `groups:"test"`
 	Test1 FilterStruct
 }
 
 type PtrStruct struct {
-	Test0 *FilterStruct `group:"test"`
+	Test0 *FilterStruct `groups:"test"`
 	Test1 *FilterStruct
 }
 
@@ -589,16 +589,16 @@ type AnonymousStruct struct {
 }
 
 type SliceStruct struct {
-	Test0 []FilterStruct `group:"test"`
+	Test0 []FilterStruct `groups:"test"`
 	Test1 []FilterStruct
 }
 
 type MapStruct struct {
-	Test0 map[string]FilterStruct `group:"test"`
+	Test0 map[string]FilterStruct `groups:"test"`
 	Test1 map[string]FilterStruct
 }
 
 type InterfaceStruct struct {
-	Test0 any `group:"test"`
+	Test0 any `groups:"test"`
 	Test1 any
 }

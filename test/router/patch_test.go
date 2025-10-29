@@ -40,7 +40,7 @@ func TestApiRouter_patch(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusNoContent {
+	if w.Code != http.StatusOK {
 		t.Error("should be no content")
 	}
 	var medium Test

@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-// IsFieldIncluded checks if a struct field should be included based on its group tags and the provided groups.
+// IsFieldIncluded checks if a struct field should be included based on its groups tags and the provided groups.
 func IsFieldIncluded(field reflect.StructField, groups []string) bool {
 	if len(groups) == 0 {
-		return true //No filtration then
+		return true
 	}
 
-	tag := field.Tag.Get("group")
+	tag := field.Tag.Get("groups")
 	if tag == "" {
 		return false
 	}
@@ -19,7 +19,7 @@ func IsFieldIncluded(field reflect.StructField, groups []string) bool {
 	groupList := strings.Split(tag, ",")
 	for _, group := range groups {
 		for _, g := range groupList {
-			if group == g {
+			if strings.TrimSpace(group) == strings.TrimSpace(g) {
 				return true
 			}
 		}

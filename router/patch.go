@@ -2,8 +2,10 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/route"
 )
 
 // Patch handles HTTP PATCH requests to partially update an existing entity.
@@ -19,7 +21,14 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
-	if err = UnserializeBodyAndMerge(c, obj); err != nil {
+
+	groups, errGroups := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Patch)
+	if errGroups != nil {
+		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		return
+	}
+
+	if err = UnserializeBodyAndMerge(c, obj, groups.Values...); err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
@@ -33,5 +42,22 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 		return
 	}
 
-	c.JSON(204, nil)
+	responseFormat, errParse := ParseAcceptHeader(c.GetHeader("Accept"))
+	if errParse != nil {
+		c.AbortWithStatusJSON(errParse.(errors.ApiError).Code, errParse.(errors.ApiError).Message)
+		return
+	}
+
+	//what is sent back should use the "get" serialization groups
+	outputGroups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
+	if err != nil {
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		return
+	}
+
+	c.Render(200, SerializerRenderer{
+		Data:   obj,
+		Format: responseFormat,
+		Groups: outputGroups,
+	})
 }

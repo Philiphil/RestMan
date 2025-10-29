@@ -109,8 +109,8 @@ func TestApiRouter_GetListCSV(t *testing.T) {
 	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 	)

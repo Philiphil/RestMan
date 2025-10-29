@@ -96,7 +96,8 @@ func (s *Serializer) deserializeXML(data string, obj any) error {
 }
 
 // MergeObjects merges source object fields into target object, both must be pointers.
-func (s *Serializer) MergeObjects(target any, source any) error {
+// If groups are provided, only fields with matching group tags will be merged.
+func (s *Serializer) MergeObjects(target any, source any, groups ...string) error {
 	targetValue := reflect.ValueOf(target)
 	sourceValue := reflect.ValueOf(source)
 
@@ -107,15 +108,14 @@ func (s *Serializer) MergeObjects(target any, source any) error {
 	targetValue = targetValue.Elem()
 	sourceValue = sourceValue.Elem()
 
-	mergeFields(targetValue, sourceValue)
+	mergeFields(targetValue, sourceValue, groups)
 
 	return nil
 }
 
-func mergeFields(target reflect.Value, source reflect.Value) {
+func mergeFields(target reflect.Value, source reflect.Value, groups []string) {
 	source = filter.DereferenceValueIfPointer(source)
 
-	//if target is nil or empty, lets create anew
 	if (target.Kind() == reflect.Ptr || target.Kind() == reflect.Interface) && target.IsNil() {
 		newTarget := reflect.New(source.Type())
 		if target.Kind() == reflect.Ptr {
@@ -129,6 +129,7 @@ func mergeFields(target reflect.Value, source reflect.Value) {
 	target = filter.DereferenceValueIfPointer(target)
 
 	if target.Kind() == reflect.Struct && source.Kind() == reflect.Struct {
+		targetType := target.Type()
 		for i := 0; i < target.NumField(); i++ {
 			targetField := target.Field(i)
 			sourceField := source.Field(i)
@@ -137,9 +138,16 @@ func mergeFields(target reflect.Value, source reflect.Value) {
 				continue
 			}
 
+			if len(groups) > 0 {
+				structField := targetType.Field(i)
+				if !filter.IsFieldIncluded(structField, groups) {
+					continue
+				}
+			}
+
 			if targetField.CanSet() && !isEmpty(sourceField) {
 				if targetField.Kind() == reflect.Struct && sourceField.Kind() == reflect.Struct {
-					mergeFields(targetField, sourceField)
+					mergeFields(targetField, sourceField, groups)
 				} else {
 					targetField.Set(sourceField)
 				}
@@ -154,9 +162,9 @@ func mergeFields(target reflect.Value, source reflect.Value) {
 			if sourceElem.Kind() == reflect.Ptr || sourceElem.Kind() == reflect.Struct {
 				mergedElem := reflect.New(sourceElem.Type()).Elem()
 				if i < target.Len() {
-					mergeFields(target.Index(i), sourceElem)
+					mergeFields(target.Index(i), sourceElem, groups)
 				} else {
-					mergeFields(mergedElem, sourceElem)
+					mergeFields(mergedElem, sourceElem, groups)
 					target.Set(reflect.Append(target, mergedElem))
 				}
 			} else {
@@ -179,14 +187,15 @@ func shouldExclude(field reflect.Value) bool {
 }
 
 // DeserializeAndMerge deserializes data and merges it into the target object.
-func (s *Serializer) DeserializeAndMerge(data string, target any) error {
+// If groups are provided, only fields with matching group tags will be merged.
+func (s *Serializer) DeserializeAndMerge(data string, target any, groups ...string) error {
 	source := reflect.New(reflect.TypeOf(target).Elem()).Interface()
 
 	if err := s.Deserialize(data, source); err != nil {
 		return err
 	}
 
-	return s.MergeObjects(target, source)
+	return s.MergeObjects(target, source, groups...)
 }
 
 // isEmpty checks if a value has the zero value of its type
