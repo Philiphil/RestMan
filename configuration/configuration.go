@@ -20,9 +20,12 @@ const (
 	// Value in seconds. Default: 0 (no caching)
 	NetworkCachingPolicyType
 
-	// SerializationGroupsType defines which field groups to include in serialization
-	// Used with struct tags: `groups:"read,write"`
-	SerializationGroupsType
+	// InputSerializationGroupsType defines which field groups to include in serialization
+	// Used with struct tags: `groups:"read,read_public,read_plus"`
+	InputSerializationGroupsType
+
+	// OutputSerializationGroupsType defines which field groups to include in output serialization
+	OutputSerializationGroupsType
 
 	// MaxItemPerPageType sets the maximum allowed items per page (default: 1000)
 	// Prevents clients from requesting too many items at once
@@ -70,12 +73,24 @@ const (
 	// Whitelist to prevent sorting on sensitive or non-indexed fields
 	SortableFieldsType
 
-	GroupOverwriteClientControlType // Allows clients to overwrite serialization groups
-	GroupOverwriteParameterNameType // Query parameter name for overwriting serialization groups
+	OutputSerializationGroupOverwriteClientControlType // Allows clients to overwrite serialization groups
+	OutputSerializationGroupOverwriteParameterNameType // Query parameter name for overwriting serialization groups
 
 	// Unimplemented configuration types - reserved for future use
-	BatchLimitType            // Will limit the number of items in batch operations
-	TypeEnabledType           // Will enable/disable specific route types
+
+	// Whether write routes default to read output serialization
+	//seems weird at first but what should be the output of POST if POST has no specific output serialization groups configured?
+	//logicaly it should be the same as GET (read)
+	//this set as true allows this behavior for POST, PUT, PATCH routes
+	WriteRouteOutputShouldDefaultToReadOutputType
+
+	// Whether batch routes default to single entity route configuration
+	// Batch route configurations (e.g., BatchGet, BatchPatch) can be configured dirrectly or otherwise fallback to router wide configuration
+	// this will allow then to fallback to single entity route configuration
+	BatchRouteConfigurationDefaultToSingleRouteConfigurationType
+
+	BatchLimitType            // Will limit the number of items in batch operations ...
+	FormatEnabledType         // Will enable/disable specific format
 	DefaultFilteringType      // Will add default filters to queries
 	InMemoryCachingPolicyType // Will configure in-memory caching
 )
@@ -130,9 +145,13 @@ func RouteName(name string) Configuration {
 //
 // Example:
 //
-//	configuration.SerializationGroups("read", "public")
-func SerializationGroups(groups ...string) Configuration {
-	return Configuration{Type: SerializationGroupsType, Values: groups}
+//	configuration.InputSerializationGroups("read", "public")
+func InputSerializationGroups(groups ...string) Configuration {
+	return Configuration{Type: InputSerializationGroupsType, Values: groups}
+}
+
+func OutputSerializationGroups(groups ...string) Configuration {
+	return Configuration{Type: OutputSerializationGroupsType, Values: groups}
 }
 
 // MaxItemPerPage sets the maximum allowed items per page. Default is 1000.
@@ -256,4 +275,20 @@ func SortingClientControl(enabled bool) Configuration {
 //	configuration.SortableFields("id", "title", "createdAt")
 func SortableFields(fields ...string) Configuration {
 	return Configuration{Type: SortableFieldsType, Values: fields}
+}
+
+func OutputSerializationGroupOverwriteClientControl(enabled bool) Configuration {
+	return Configuration{Type: OutputSerializationGroupOverwriteClientControlType, Values: []string{strconv.FormatBool(enabled)}}
+}
+
+func OutputSerializationGroupOverwriteParameterName(name string) Configuration {
+	return Configuration{Type: OutputSerializationGroupOverwriteParameterNameType, Values: []string{name}}
+}
+
+func WriteRouteOutputShouldDefaultToReadOutput(enabled bool) Configuration {
+	return Configuration{Type: WriteRouteOutputShouldDefaultToReadOutputType, Values: []string{strconv.FormatBool(enabled)}}
+}
+
+func BatchRouteConfigurationDefaultToSingleRouteConfiguration(enabled bool) Configuration {
+	return Configuration{Type: BatchRouteConfigurationDefaultToSingleRouteConfigurationType, Values: []string{strconv.FormatBool(enabled)}}
 }

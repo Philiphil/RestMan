@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/route"
 	"github.com/philiphil/restman/serializer"
@@ -24,12 +23,12 @@ func (r *ApiRouter[T]) Head(c *gin.Context) {
 	}
 	s := serializer.NewSerializer(responseFormat)
 
-	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.Get)
+	groups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
-	str, err := s.Serialize(object, groups.Values...)
+	str, err := s.Serialize(object, groups...)
 	if err != nil {
 		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
 		return

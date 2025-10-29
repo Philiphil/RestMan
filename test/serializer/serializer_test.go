@@ -94,10 +94,10 @@ func TestSerializer_SerializeCSVEmpty(t *testing.T) {
 // CSV serialization - slice with different types
 func TestSerializer_SerializeCSVPrimitives(t *testing.T) {
 	type CSVTest struct {
-		Name  string  `group:"test"`
-		Age   int     `group:"test"`
-		Score float64 `group:"test"`
-		Pass  bool    `group:"test"`
+		Name  string  `groups:"test"`
+		Age   int     `groups:"test"`
+		Score float64 `groups:"test"`
+		Pass  bool    `groups:"test"`
 	}
 
 	s := NewSerializer(format.CSV)

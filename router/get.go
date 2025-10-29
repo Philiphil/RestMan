@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/route"
 )
@@ -27,7 +26,7 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		return
 	}
 
-	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.Get)
+	groups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
@@ -36,6 +35,6 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 	c.Render(200, SerializerRenderer{
 		Data:   object,
 		Format: responseFormat,
-		Groups: groups.Values,
+		Groups: groups,
 	})
 }

@@ -30,8 +30,8 @@ func TestApiRouter_put(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusNoContent {
-		t.Error("should be no content")
+	if w.Code != http.StatusOK {
+		t.Error("should be OK")
 	}
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("PUT", "/api/test/2", bytes.NewBuffer([]byte(`{"name":"test2"}`)))

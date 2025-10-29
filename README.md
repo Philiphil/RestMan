@@ -252,13 +252,13 @@ Override settings for specific operations:
 routes := route.DefaultApiRoutes()
 
 getConfig := configuration.DefaultRouteConfiguration().
-    SerializationGroups("read", "public").
+    InputSerializationGroups("read", "public").
     ItemPerPage(100)
 
 routes.Get.Configure(getConfig)
 
 postConfig := configuration.DefaultRouteConfiguration().
-    SerializationGroups("write")
+   InputSerializationGroups("write")
 
 routes.Post.Configure(postConfig)
 
@@ -457,8 +457,8 @@ go test ./test/router/...
 ## Roadmap
 
 ### TODO/ IDEAS
+- [ ] Add random configuration to clarify behavior, suggest best practices and allow flexibility  (right now clarifying backup configuration)
 - [ ] Filtering implementation
-- [ ] Groups override parameter
 - [ ] UUID compatibility for entity.ID
 - [ ] Force lowercase option for JSON keys
 - [ ] Automatic Redis caching integration in router
@@ -473,16 +473,6 @@ go test ./test/router/...
 - [ ] Some UI backoffice ?
 - [ ] Graphql like PageInfo object after, before, first, last, pageof 
 
-
-### Completed
-- [x] MongoDB repository implementation
-- [x] Redis caching library (manual usage)
-- [x] XML serialization
-- [x] CSV serialization
-- [x] MessagePack support
-- [x] Subresource routing
-- [x] Batch operations
-- [x] JSON-LD with Hydra collections
 
 ## License
 

@@ -18,10 +18,16 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		return
 	}
 
-	if err := UnserializeBodyAndMerge(c, &entity); err != nil {
+	groups, err := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Post)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		return
+	}
+
+	if err := UnserializeBodyAndMerge(c, &entity, groups.Values...); err != nil {
 		//if unserializable, might be array
 		if _, ok := r.Routes[route.BatchPost]; ok {
-			if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {
+			if err := UnserializeBodyAndMerge_A(c, &entities, groups.Values...); err != nil {
 				//its still unserializable as an array
 				c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
 				return
@@ -41,15 +47,16 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
 		return
 	}
-	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+	responseFormat, errParse := ParseAcceptHeader(c.GetHeader("Accept"))
+	if errParse != nil {
+		c.AbortWithStatusJSON(errParse.(errors.ApiError).Code, errParse.(errors.ApiError).Message)
 		return
 	}
 
-	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.Post)
+	//what is sent back should use the "get" serialization groups
+	outputGroups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return
 	}
 
@@ -57,14 +64,14 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		c.Render(201, SerializerRenderer{
 			Data:   &entity,
 			Format: responseFormat,
-			Groups: groups.Values, //what is sent shall be compliant to get
+			Groups: outputGroups,
 		})
 	} else {
 		//batch
 		c.Render(201, SerializerRenderer{
 			Data:   &entities,
 			Format: responseFormat,
-			Groups: groups.Values, //what is sent shall be compliant to get
+			Groups: outputGroups,
 		})
 	}
 

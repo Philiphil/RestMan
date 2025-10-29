@@ -1,23 +1,19 @@
-It would be better to do something like this
+About serialization groups.
 
+They allows DTO on demand
 
-Serialize(any serialized, any medium)
+right now we use the same tag serializationGroup for input and output,
+which is consufing.
 
-1    What's serialized ?
-        A pointer
-            -> unpoint it and go to 1
-        A slice
-            -> itt trought it and go to 1
-        A struct
-            -> itt trough it and go to 1 IF field is not excluded
-        A map
-            -> itt trough it and go to 1
-        A primitive
-            convert (2)
+create and update routes are using read's config as an output
+which is okay in theory but in practice sometimes we do weird thing
+so we need to be able to give those a proper output serializationGoup for the sake of it
 
-I didnt did at first cause the only target was struct other cases came as edge case
-now everything's there and implemeted and working
-At first nothing was mastered, but now it is and now is time to create a better worflow
+OR ...
+I would argue post/put output should be get compliant
+So ...
+allows POST proper output and use get as backup
+
 
 ___________
 Now, It is what's already happenning ... almost

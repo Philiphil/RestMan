@@ -31,7 +31,7 @@ func (u User) SetId(id any) entity.Entity {
 	u.Id = entity.CastId(id)
 	return u
 }
-func (u User) ToEntity() User       { return u }
+func (u User) ToEntity() User        { return u }
 func (u User) FromEntity(e User) any { return e }
 
 func getSerializationDB() *gorm.DB {
@@ -57,7 +57,7 @@ func TestCustomSerialization(t *testing.T) {
 	userRouter := router.NewApiRouter(
 		*orm.NewORM(gormrepository.NewRepository[User](db)),
 		routes,
-		configuration.SerializationGroups("read", "public"),
+		configuration.InputSerializationGroups("read", "public"),
 	)
 
 	userRouter.AllowRoutes(r)

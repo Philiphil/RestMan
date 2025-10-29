@@ -31,8 +31,8 @@ func TestApiRouter_GetList(t *testing.T) {
 	getDB().Exec("DELETE FROM tests")
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 		configuration.Pagination(false),
@@ -74,8 +74,8 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 		configuration.Pagination(true),
@@ -164,8 +164,8 @@ func TestApiRouter_GetListJSONLD(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 	)
@@ -206,8 +206,8 @@ func TestApiRouter_GetListErrors(t *testing.T) {
 	getDB().AutoMigrate(&Test{})
 	r := SetupRouter()
 
-	repo := orm.NewORM[Test](gormrepository.NewRepository[Test, Test](getDB()))
-	test_ := NewApiRouter[Test](
+	repo := orm.NewORM(gormrepository.NewRepository[Test](getDB()))
+	test_ := NewApiRouter(
 		*repo,
 		route.DefaultApiRoutes(),
 	)

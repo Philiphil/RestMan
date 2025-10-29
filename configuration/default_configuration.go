@@ -3,9 +3,12 @@ package configuration
 // DefaultConfiguration returns the default configuration map used by an ApiRouter.
 func DefaultConfiguration() map[ConfigurationType]Configuration {
 	return map[ConfigurationType]Configuration{
-		RoutePrefixType:              RoutePrefix("api"),
-		NetworkCachingPolicyType:     NetworkCachingPolicy(0),
-		SerializationGroupsType:      SerializationGroups(),
+		RoutePrefixType:          RoutePrefix("api"),
+		NetworkCachingPolicyType: NetworkCachingPolicy(0),
+
+		InputSerializationGroupsType:  InputSerializationGroups(),
+		OutputSerializationGroupsType: OutputSerializationGroups(),
+
 		PaginationType:               Pagination(true),
 		PageParameterNameType:        PageParameterName("page"),
 		PaginationClientControlType:  PaginationClientControl(false),
@@ -19,5 +22,12 @@ func DefaultConfiguration() map[ConfigurationType]Configuration {
 		SortingType:              Sorting(map[string]string{"id": "asc"}),
 		SortingParameterNameType: SortingParameterName("sort"),
 		SortableFieldsType:       SortableFields("id"),
+
+		OutputSerializationGroupOverwriteClientControlType: OutputSerializationGroupOverwriteClientControl(false),
+		OutputSerializationGroupOverwriteParameterNameType: OutputSerializationGroupOverwriteParameterName("groupOverwrite"),
+
+		//not implemented yet
+		WriteRouteOutputShouldDefaultToReadOutputType:                WriteRouteOutputShouldDefaultToReadOutput(true),
+		BatchRouteConfigurationDefaultToSingleRouteConfigurationType: BatchRouteConfigurationDefaultToSingleRouteConfiguration(true),
 	}
 }

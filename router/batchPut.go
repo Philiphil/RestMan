@@ -63,7 +63,7 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 		return
 	}
 
-	groups, err := r.GetConfiguration(configuration.SerializationGroupsType, route.Post)
+	groups, err := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Post)
 	if err != nil {
 		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
 		return

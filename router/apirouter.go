@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/restman/configuration"
-	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/route"
@@ -110,30 +109,6 @@ func ConvertToSnakeCase(input string) string {
 	}
 
 	return builder.String()
-}
-
-// This function return either the router wide configuration or the route specific configuration
-// If the routeType is not provided, it will return the router wide configuration
-// If the routeType is provided, it will return the route specific configuration
-// error is returned if the configuration is not found
-// by default error should always be nil if you use NewApiRouter
-func (r *ApiRouter[T]) GetConfiguration(configurationType configuration.ConfigurationType, routeType ...route.RouteType) (configuration.Configuration, error) {
-	routerValue, found := r.Configuration[configurationType]
-	if len(routeType) == 1 {
-		for _, route_ := range r.Routes {
-			if route_.RouteType == routeType[0] {
-				routeValue, exists := route_.Configuration[configurationType]
-				if exists {
-					return routeValue, nil
-				}
-			}
-		}
-	}
-	if !found {
-		return routerValue, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
-	}
-
-	return routerValue, nil
 }
 
 // NewApiRouter is a function that creates a new ApiRouter
