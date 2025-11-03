@@ -162,11 +162,6 @@ type User struct {
 }
 ```
 
-Groups are applied automatically:
-- **POST/PUT/PATCH**: Uses `write` group
-- **GET**: Uses `read` group
-- Custom groups can be configured per route
-
 ### Repository Pattern
 
 RestMan uses a repository abstraction, allowing you to swap databases easily:
