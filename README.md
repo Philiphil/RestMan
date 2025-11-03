@@ -224,19 +224,15 @@ import "github.com/philiphil/restman/configuration"
 bookRouter := router.NewApiRouter(
     *orm.NewORM(gormrepository.NewRepository[Book](db)),
     route.DefaultApiRoutes(),
+    configuration.ItemPerPage(50),
+    configuration.MaxItemPerPage(500),
+    configuration.RoutePrefix("api", "v1"),
+    configuration.RouteName("library"),
+    configuration.PaginationClientControl(true),
+    configuration.SortingClientControl(true),
+    configuration.Sorting(map[string]string{"title": "asc"}),
+    configuration.NetworkCachingPolicy(3600),
 )
-
-config := configuration.DefaultRouterConfiguration().
-    ItemPerPage(50).
-    MaxItemPerPage(500).
-    RoutePrefix("v1/books").
-    RouteName("library").
-    AllowClientPagination(true).
-    AllowClientSorting(true).
-    DefaultSortOrder(configuration.SortAsc, "title").
-    NetworkCachingPolicy(configuration.NetworkCachingPolicy{MaxAge: 3600})
-
-bookRouter.Configure(config)
 ```
 
 ### Route-Level Configuration
@@ -246,18 +242,15 @@ Override settings for specific operations:
 ```go
 routes := route.DefaultApiRoutes()
 
-getConfig := configuration.DefaultRouteConfiguration().
-    InputSerializationGroups("read", "public").
-    ItemPerPage(100)
+routes[route.Get].Configuration[configuration.OutputSerializationGroupsType] = configuration.OutputSerializationGroups("read", "public")
+routes[route.Get].Configuration[configuration.ItemPerPageType] = configuration.ItemPerPage(100)
 
-routes.Get.Configure(getConfig)
+routes[route.Post].Configuration[configuration.InputSerializationGroupsType] = configuration.InputSerializationGroups("write")
 
-postConfig := configuration.DefaultRouteConfiguration().
-   InputSerializationGroups("write")
-
-routes.Post.Configure(postConfig)
-
-bookRouter := router.NewApiRouter(orm, routes)
+bookRouter := router.NewApiRouter(
+    *orm.NewORM(gormrepository.NewRepository[Book](db)),
+    routes,
+)
 ```
 
 ### Pagination
@@ -378,8 +371,6 @@ DELETE /api/book/batch?ids=1,2,3
 RestMan supports HTTP caching via Cache-Control headers:
 
 ```go
-import "github.com/philiphil/restman/configuration"
-
 bookRouter := router.NewApiRouter(
     *orm.NewORM(gormrepository.NewRepository[Book](db)),
     route.DefaultApiRoutes(),

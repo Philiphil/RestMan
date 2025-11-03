@@ -1,6 +1,7 @@
 package router
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -16,22 +17,68 @@ import (
 // error is returned if the configuration is not found
 // by default error should always be nil if you use NewApiRouter
 func (r *ApiRouter[T]) GetConfiguration(configurationType configuration.ConfigurationType, routeType ...route.RouteType) (configuration.Configuration, error) {
-	routerValue, found := r.Configuration[configurationType]
 	if len(routeType) == 1 {
-		for _, route_ := range r.Routes {
-			if route_.RouteType == routeType[0] {
-				routeValue, exists := route_.Configuration[configurationType]
-				if exists {
-					return routeValue, nil
-				}
-			}
+		if routeValue, err := r.GetRouteWideConfiguration(configurationType, routeType[0]); err == nil {
+			return routeValue, nil
 		}
 	}
+	return r.GetRouterWideConfiguration(configurationType)
+}
+
+func (r *ApiRouter[T]) GetRouterWideConfiguration(configurationType configuration.ConfigurationType) (configuration.Configuration, error) {
+	routerValue, found := r.Configuration[configurationType]
 	if !found {
-		return routerValue, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		// this should not happen, there should always be a router wide configuration
+		// it would mean that the router was not properly initialized
+		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	}
+	return routerValue, nil
+}
+
+func (r *ApiRouter[T]) GetRouteWideConfiguration(configurationType configuration.ConfigurationType, routeType route.RouteType) (configuration.Configuration, error) {
+	configuration, err := r._GetRouteWideConfiguration(configurationType, routeType)
+	if err == nil {
+		return configuration, nil
 	}
 
-	return routerValue, nil
+	// check if we can fallback to another route configuration
+	return r.GetRouteWideConfigurationFallback(configurationType, routeType)
+}
+
+func (r *ApiRouter[T]) _GetRouteWideConfiguration(configurationType configuration.ConfigurationType, routeType route.RouteType) (configuration.Configuration, error) {
+	routeConfig, exists := r.Routes[routeType]
+	if !exists {
+		//we trying to get configuration for a route that does not exist
+		//should not happen
+		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	}
+	routeValue, exists := routeConfig.Configuration[configurationType]
+	if exists {
+		return routeValue, nil
+	}
+	return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+}
+
+// if a given route-wide configuration is not found, there's case we want to fallback to another route-wide configuration
+// if the router's configuration allows it, batch route will fallback to there single entity counterpart
+// BatchGet -> Get
+// router's configuration might also allow CREATE/UPDATE routes to fallback to READ route configuration
+// POST, PUT, PATCH -> GET
+// In case of BATCH + WRITE route, both fallback mechanisms can be applied
+// does this makes sense?
+// BatchPost -> BatchGet -> Post -> Get
+func (r *ApiRouter[T]) GetRouteWideConfigurationFallback(configurationType configuration.ConfigurationType, routeType route.RouteType) (configuration.Configuration, error) {
+	//not implemented yet
+
+	listOfFallbackableConfigurationType := []configuration.ConfigurationType{
+		configuration.OutputSerializationGroupsType,
+	}
+
+	if !slices.Contains(listOfFallbackableConfigurationType, configurationType) {
+		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	}
+
+	return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
 }
 
 func (r *ApiRouter[T]) IsOutputSerializationGroupOverwriteEnabled(c *gin.Context) (bool, error) {
