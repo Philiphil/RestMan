@@ -1,7 +1,9 @@
 package router_test
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"net/http"
@@ -46,20 +48,20 @@ func TestApiRouter_GetList(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Error("Failed to start server")
 	}
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 	entities := make([]Test, 0)
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 0 {
 		t.Error("Expected mo entity")
 	}
 
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(context.Background(), &entity)
 	w.Body.Reset()
 	req, _ = http.NewRequest("GET", "/api/test", nil)
 	r.ServeHTTP(w, req)
 
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 
 	if len(entities) != 1 {
 		fmt.Println(entities)
@@ -84,12 +86,12 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	)
 	test_.AllowRoutes(r)
 	w := httptest.NewRecorder()
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 	entities := make([]Test, 0)
 	e := Test{}
 	for i := 0; i < 11; i++ {
 		e.Id = entity.ID(i + 1)
-		repo.Create(&e)
+		repo.Create(context.Background(), &e)
 	}
 
 	req, _ := http.NewRequest("GET", "/api/test?pagination=true&itemsPerPage=5", nil)
@@ -99,7 +101,7 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 		t.Error("Failed to start server")
 	}
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 5 {
 		fmt.Println(w.Body.String())
 		t.Error("Expected 5 entities")
@@ -113,7 +115,7 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?pagination=true&page=2", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 5 {
 		fmt.Println(w.Body.String())
 		t.Error("Expected 5 entities")
@@ -128,7 +130,7 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?page=3", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 1 {
 		fmt.Println(w.Body.String())
 		t.Error("Expected 1 entities")
@@ -143,7 +145,7 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?pagination=true&itemsPerPage=50&page=1", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 11 {
 		fmt.Println(w.Body.String())
 		t.Error("Expected 11 entities")
@@ -153,7 +155,7 @@ func TestApiRouter_GetListPaginated(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?pagination=true&itemsPerPage=50&page=2", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 0 {
 		fmt.Println(w.Body.String())
 		t.Error("Expected no entities")
@@ -173,7 +175,7 @@ func TestApiRouter_GetListJSONLD(t *testing.T) {
 	e := Test{}
 	for i := 0; i < 11; i++ {
 		e.Id = entity.ID(i + 1)
-		repo.Create(&e)
+		repo.Create(context.Background(), &e)
 	}
 
 	w := httptest.NewRecorder()
@@ -185,19 +187,33 @@ func TestApiRouter_GetListJSONLD(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Error("Failed to start server")
 	}
-	serializer := serializer.NewSerializer(format.JSONLD)
+	s := serializer.NewSerializer(format.JSONLD)
 	entities := make(map[string]any, 0)
-	serializer.Deserialize(w.Body.String(), &entities)
-	if entities["hydra:totalItems"].(float64) != 5 {
-		fmt.Println(entities["hydra:totalItems"])
-		t.Error("Expected 5 entities")
-	}
-	if entities["hydra:view"].(map[string]any)["hydra:first"] != "/api/test?page=1" {
-		t.Error("Expected /api/test?page=1")
+	s.Deserialize(w.Body.String(), &entities)
+
+	// hydra:totalItems should be the total count across all pages (11), not just current page (5)
+	if entities["hydra:totalItems"].(float64) != 11 {
+		fmt.Println("Got hydra:totalItems:", entities["hydra:totalItems"])
+		t.Errorf("Expected hydra:totalItems=11 (total count), got %v", entities["hydra:totalItems"])
 	}
 
-	if entities["hydra:view"].(map[string]any)["hydra:next"] != "/api/test?page=2" {
-		t.Error("Expected /api/test?page=2")
+	// Verify we got 5 items in the current page (hydra:member)
+	members := entities["hydra:member"].([]any)
+	if len(members) != 5 {
+		t.Errorf("Expected 5 members in current page, got %d", len(members))
+	}
+
+	view := entities["hydra:view"].(map[string]any)
+
+	// Check pagination links
+	firstURL := view["hydra:first"].(string)
+	if !strings.Contains(firstURL, "page=1") {
+		t.Errorf("Expected first link to contain page=1, got %s", firstURL)
+	}
+
+	nextURL := view["hydra:next"].(string)
+	if !strings.Contains(nextURL, "page=2") {
+		t.Errorf("Expected next link to contain page=2, got %s", nextURL)
 	}
 
 }
@@ -215,7 +231,7 @@ func TestApiRouter_GetListErrors(t *testing.T) {
 	e := Test{}
 	for i := 0; i < 11; i++ {
 		e.Id = entity.ID(i + 1)
-		repo.Create(&e)
+		repo.Create(context.Background(), &e)
 	}
 
 	w := httptest.NewRecorder()
@@ -412,9 +428,9 @@ func TestApiRouter_SortOrder(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Error("Failed to start server")
 	}
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 	entities := make([]Test, 0)
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	for i, e := range entities {
 		if e.GetId() != entity.ID(i+1) {
 			t.Error("Expected entity with id " + fmt.Sprint(i) + " but got " + fmt.Sprint(e.Id))
@@ -424,7 +440,7 @@ func TestApiRouter_SortOrder(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?pagination=true&itemsPerPage=5&page=1&sort[id]=desc", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	for i, e := range entities {
 		expected := entity.ID(11 - i)
 		if e.GetId() != expected {

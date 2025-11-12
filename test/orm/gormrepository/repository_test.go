@@ -131,7 +131,7 @@ func TestGormRepository_Count(t *testing.T) {
 	db, _ := getDB()
 	repository := gormrepository.NewRepository[ProductGorm, Product](db)
 
-	nb, err := repository.Count()
+	nb, err := repository.Count(context.Background())
 
 	if err != nil {
 		t.Error(err)
@@ -259,7 +259,7 @@ func TestGormRepository_Delete(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = repository.Delete([]*Product{&product})
+	err = repository.Delete(ctx, []*Product{&product})
 	if err != nil {
 		t.Error(err)
 	}
@@ -398,6 +398,26 @@ func TestGormRepository_Conditions(t *testing.T) {
 	if len(many) != 1 {
 		t.Error(many)
 	}
+
+	many, err = newRepository.Find(ctx,
+		gormrepository.Like("name", "product%"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 4 {
+		t.Error(many)
+	}
+
+	many, err = newRepository.Find(ctx,
+		gormrepository.Ilike("name", "PRODUCT%"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(many) != 4 {
+		t.Error(many)
+	}
 }
 
 func TestGormRepository_Order(t *testing.T) {
@@ -502,5 +522,127 @@ func TestGormRepository_BatchDelete(t *testing.T) {
 	err := repository.BatchDelete(ctx, products)
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+// now we test the rest_adapter operations
+
+func TestGormRestAdapter_Create(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	p1 := Product{ID: 100, Name: "p100", Weight: 1, IsAvailable: true}
+	p2 := Product{ID: 101, Name: "p101", Weight: 2, IsAvailable: true}
+	err := repository.Create(ctx, []*Product{&p1, &p2})
+	if err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+}
+func TestGormRestAdapter_Read(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	p1 := Product{ID: 200, Name: "p200", Weight: 1, IsAvailable: true}
+	p2 := Product{ID: 201, Name: "p201", Weight: 2, IsAvailable: true}
+	err := repository.Create(ctx, []*Product{&p1, &p2})
+	if err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+
+	read, err := repository.Read(ctx, []entity.ID{p1.GetId(), p2.GetId()})
+	if err != nil {
+		t.Fatalf("read failed: %v", err)
+	}
+	if len(read) != 2 {
+		t.Fatalf("expected 2 results, got %d", len(read))
+	}
+}
+func TestGormRestAdapter_Update(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	p := Product{ID: 300, Name: "p300", Weight: 10, IsAvailable: true}
+	err := repository.Create(ctx, []*Product{&p})
+	if err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+	p.Name = "p300_updated"
+	p.Weight = 11
+	err = repository.Update(ctx, []*Product{&p})
+	if err != nil {
+		t.Fatalf("update failed: %v", err)
+	}
+	after, err := repository.FindByID(ctx, p.GetId())
+	if err != nil {
+		t.Fatalf("find failed: %v", err)
+	}
+	if after.Name != "p300_updated" || after.Weight != 11 {
+		t.Fatalf("update not persisted: %+v", after)
+	}
+}
+func TestGormRestAdapter_Delete(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	p := Product{ID: 400, Name: "p400", Weight: 5, IsAvailable: true}
+	err := repository.Create(ctx, []*Product{&p})
+	if err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+	err = repository.Delete(ctx, []*Product{&p})
+	if err != nil {
+		t.Fatalf("delete failed: %v", err)
+	}
+}
+
+// list and count
+func TestGormRestAdapter_List(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	products := []*Product{
+		{
+			ID:          500,
+			Name:        "product1",
+			Weight:      100,
+			IsAvailable: true,
+		},
+		{
+			ID:          501,
+			Name:        "product2",
+			Weight:      50,
+			IsAvailable: true,
+		},
+	}
+	err := repository.BatchInsert(ctx, products)
+	if err != nil {
+		t.Error(err)
+	}
+
+	list, err := repository.List(ctx, 10, 0, map[string]string{"weight": "ASC"})
+	if err != nil {
+		t.Fatalf("list failed: %v", err)
+	}
+	if len(list) < 2 {
+		t.Fatalf("expected at least 2 results, got %d", len(list))
+	}
+}
+
+func TestGormRestAdapter_Count(t *testing.T) {
+	db, _ := getDB()
+	repository := gormrepository.NewRepository[ProductGorm, Product](db)
+	ctx := context.Background()
+
+	count, err := repository.Count(ctx)
+	if err != nil {
+		t.Fatalf("count failed: %v", err)
+	}
+	if count < 2 {
+		t.Fatalf("expected at least 2 results, got %d", count)
 	}
 }

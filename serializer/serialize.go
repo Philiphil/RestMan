@@ -14,15 +14,6 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-type xmlFilterWrapper struct {
-	Data any
-	groups []string
-}
-
-func (w xmlFilterWrapper) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return marshalXMLFiltered(e, start, reflect.ValueOf(w.Data), w.groups)
-}
-
 func marshalXMLFiltered(e *xml.Encoder, start xml.StartElement, value reflect.Value, groups []string) error {
 	value = filter.DereferenceValueIfPointer(value)
 
@@ -99,26 +90,31 @@ func marshalXMLFiltered(e *xml.Encoder, start xml.StartElement, value reflect.Va
 	return e.EncodeToken(start.End())
 }
 
-// Serialize converts an object to a string representation in the configured format.
-func (s *Serializer) Serialize(obj any, groups ...string) (string, error) {
+// SerializeOptions contains options for serialization
+type SerializeOptions struct {
+	Groups       []string
+	SparseFields map[string][]string
+}
+
+// Serialize converts an object to a string with full control over options.
+func (s *Serializer) Serialize(obj any, opts SerializeOptions) (string, error) {
+	data := filter.FilterByGroups(obj, opts.Groups, opts.SparseFields)
+
 	switch s.Format {
-	case format.JSON:
-		return s.serializeJSON(obj, groups...)
-	case format.JSONLD:
-		return s.serializeJSON(obj, groups...)
+	case format.JSON, format.JSONLD:
+		return s.serializeJSON(data)
 	case format.XML:
-		return s.serializeXML(obj, groups...)
+		return s.serializeXML(data, opts.Groups)
 	case format.CSV:
-		return s.serializeCSV(obj, groups...)
+		return s.serializeCSV(data, opts.Groups)
 	case format.MESSAGEPACK:
-		return s.serializeMessagePack(obj, groups...)
+		return s.serializeMessagePack(data)
 	default:
 		return "", fmt.Errorf("unsupported format: %s", s.Format)
 	}
 }
 
-func (s *Serializer) serializeJSON(obj any, groups ...string) (string, error) {
-	data := filter.FilterByGroups(obj, groups...)
+func (s *Serializer) serializeJSON(data any) (string, error) {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
@@ -138,7 +134,7 @@ func (s *Serializer) serializeJSON(obj any, groups ...string) (string, error) {
 	return result, nil
 }
 
-func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
+func (s *Serializer) serializeXML(data any, groups []string) (string, error) {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
@@ -149,7 +145,7 @@ func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
 		encoder.Indent("", "  ")
 	}
 
-	value := reflect.ValueOf(obj)
+	value := reflect.ValueOf(data)
 	typ := value.Type()
 
 	rootName := "root"
@@ -174,9 +170,7 @@ func (s *Serializer) serializeXML(obj any, groups ...string) (string, error) {
 	return buf.String(), nil
 }
 
-func (s *Serializer) serializeCSV(obj any, groups ...string) (string, error) {
-	data := filter.FilterByGroups(obj, groups...)
-
+func (s *Serializer) serializeCSV(data any, groups []string) (string, error) {
 	value := reflect.ValueOf(data)
 	if value.Kind() != reflect.Slice {
 		return "", fmt.Errorf("invalid object type for CSV serialization: expected slice, got %s", value.Kind())
@@ -250,8 +244,7 @@ func writeCSVToString(rows [][]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (s *Serializer) serializeMessagePack(obj any, groups ...string) (string, error) {
-	data := filter.FilterByGroups(obj, groups...)
+func (s *Serializer) serializeMessagePack(data any) (string, error) {
 	var buf bytes.Buffer
 	encoder := msgpack.NewEncoder(&buf)
 	encoder.SetCustomStructTag("json")

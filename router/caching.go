@@ -1,6 +1,11 @@
 package router
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"fmt"
+	"io"
+
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/route"
@@ -15,10 +20,17 @@ func (r *ApiRouter[T]) HandleCaching(route route.RouteType, c *gin.Context) {
 		visibility = "private"
 	}
 
-	maxAge, err := r.GetConfiguration(configuration.NetworkCachingPolicyType, route)
+	//todo add error handling
+	maxAge, _ := r.GetConfiguration(configuration.NetworkCachingPolicyType, route)
+	bodyBytes, _ := io.ReadAll(c.Request.Body)
 
-	if maxAge.Values[0] != "0" && err == nil {
-		c.Header("Cache-Control", visibility+", max-age="+(maxAge.Values[0]))
-		c.Header("Etag", c.Request.URL.String())
-	}
+	c.Header("Etag", GenerateETag(bodyBytes))
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	c.Header("Cache-Control", visibility+", max-age="+(maxAge.Values[0]))
+
+}
+
+func GenerateETag(responseBody []byte) string {
+	hash := sha256.Sum256(responseBody)
+	return fmt.Sprintf(`"%x"`, hash[:8])
 }

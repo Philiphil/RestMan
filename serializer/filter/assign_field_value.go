@@ -5,9 +5,9 @@ import (
 	"reflect"
 )
 
-func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcValue reflect.Value) {
+func AssignFieldValue(field reflect.StructField, destValue reflect.Value, srcValue reflect.Value) error {
 	if srcValue.IsZero() {
-		return
+		return nil
 	}
 	if field.Type == srcValue.Type() || field.Type.AssignableTo(srcValue.Type()) {
 		destValue.Set(srcValue)
@@ -24,12 +24,15 @@ func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcVal
 				srcFieldValue := DereferenceValueIfPointer(srcValue)
 
 				srcFieldValue = srcFieldValue.FieldByName(destField.Name)
+				if !srcFieldValue.IsValid() { //there no way this should happen but the linter yells at me
+					continue
+				}
 				destFieldValue := destValueConverted.Field(i)
 
 				if IsStruct(srcFieldValue.Type()) && destFieldValue.Kind() == reflect.Struct {
-					assignFieldValue(destField, destFieldValue, srcFieldValue)
+					AssignFieldValue(destField, destFieldValue, srcFieldValue)
 				} else {
-					assignFieldValue(destField, destFieldValue, srcFieldValue)
+					AssignFieldValue(destField, destFieldValue, srcFieldValue)
 				}
 			}
 
@@ -40,9 +43,9 @@ func assignFieldValue(field reflect.StructField, destValue reflect.Value, srcVal
 		}
 	} else {
 		if !srcValue.Type().ConvertibleTo(destValue.Type()) {
-			fmt.Printf("Type conversion not supported from %v to %v\n", srcValue.Type(), destValue.Type())
-			panic("!")
+			return fmt.Errorf("type conversion not supported from %v to %v", srcValue.Type(), destValue.Type())
 		}
 		destValue.Set(srcValue.Convert(destValue.Type()))
 	}
+	return nil
 }

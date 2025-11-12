@@ -31,6 +31,7 @@ func (r *GormRepository[M, E]) EnablePreloadAssociations() *GormRepository[M, E]
 	r.preloadAssocations = true
 	return r
 }
+
 // DisablePreloadAssociations disables automatic preloading of entity associations.
 func (r *GormRepository[M, E]) DisablePreloadAssociations() *GormRepository[M, E] {
 	r.preloadAssocations = false

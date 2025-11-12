@@ -14,13 +14,13 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 	entity := r.Orm.NewEntity()
 
 	if err := r.WritingCheck(c, &entity); err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
 
 	groups, err := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Post)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		abortWithApiError(c, errors.ErrInternal)
 		return
 	}
 
@@ -29,50 +29,30 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 		if _, ok := r.Routes[route.BatchPost]; ok {
 			if err := UnserializeBodyAndMerge_A(c, &entities, groups.Values...); err != nil {
 				//its still unserializable as an array
-				c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
+				abortWithApiError(c, errors.ErrBadFormat)
 				return
 			} else {
 				single = false
 			}
 		} else {
 			//batch is not allowed, so array or not it does not mater
-			c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
+			abortWithApiError(c, errors.ErrBadFormat)
 			return
 		}
 	} else {
 		entities = append(entities, &entity)
 	}
 
-	if err := r.Orm.Create(entities...); err != nil {
-		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
-		return
-	}
-	responseFormat, errParse := ParseAcceptHeader(c.GetHeader("Accept"))
-	if errParse != nil {
-		c.AbortWithStatusJSON(errParse.(errors.ApiError).Code, errParse.(errors.ApiError).Message)
-		return
-	}
-
-	//what is sent back should use the "get" serialization groups
-	outputGroups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+	if err := r.Orm.Create(c.Request.Context(), entities...); err != nil {
+		abortWithApiError(c, errors.ErrDatabaseIssue)
 		return
 	}
 
 	if single {
-		c.Render(201, SerializerRenderer{
-			Data:   &entity,
-			Format: responseFormat,
-			Groups: outputGroups,
-		})
+		r.Render(c, 201, &entity, route.Post)
 	} else {
 		//batch
-		c.Render(201, SerializerRenderer{
-			Data:   &entities,
-			Format: responseFormat,
-			Groups: outputGroups,
-		})
+		r.Render(c, 201, &entities, route.BatchPost)
 	}
 
 }

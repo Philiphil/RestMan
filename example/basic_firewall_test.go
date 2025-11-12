@@ -1,6 +1,7 @@
 package example_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -92,7 +93,7 @@ func TestMain_FireWall(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	repo := orm.NewORM(gormrepository.NewRepository[ProtectedEntity](getDB()))
-	repo.Create(&ProtectedEntity{})
+	repo.Create(context.Background(), &ProtectedEntity{})
 	w = httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/protected_entity/1", nil)
 	r.ServeHTTP(w, req)

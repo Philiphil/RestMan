@@ -13,7 +13,7 @@ func (r *ApiRouter[T]) FirewallCheck(c *gin.Context) (security.User, error) {
 	for _, firewall := range r.Firewalls {
 		user, err = firewall.GetUser(c)
 		if err != nil { //problem
-			if err.(errors.ApiError).Blocking {
+			if apiErr, ok := err.(errors.ApiError); ok && apiErr.Blocking {
 				return user, err
 			} else {
 				continue

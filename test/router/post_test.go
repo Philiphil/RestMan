@@ -2,12 +2,13 @@ package router_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	// Removed unused gin import
 
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/orm"
@@ -33,9 +34,9 @@ func TestApiRouter_post(t *testing.T) {
 	entity := Test{entity.BaseEntity{Id: 2, Name: "test"}}
 	w := httptest.NewRecorder()
 
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
-	jsonEntity, _ := serializer.Serialize(entity)
+	jsonEntity, _ := s.Serialize(entity, serializer.SerializeOptions{})
 	req, _ := http.NewRequest("POST", "/api/test", bytes.NewReader([]byte(jsonEntity)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
@@ -45,12 +46,12 @@ func TestApiRouter_post(t *testing.T) {
 		t.Error("Failed to create")
 	}
 	medium := Test{}
-	serializer.Deserialize(w.Body.String(), &medium)
+	s.Deserialize(w.Body.String(), &medium)
 	if medium.Id != 2 {
 		fmt.Println(w.Body.String())
 		t.Error("Failed to create")
 	}
-	if object, err := repo.GetByID(2); object == nil || err != nil {
+	if object, err := repo.GetByID(context.Background(), 2); object == nil || err != nil {
 		t.Error("Failed to create")
 	}
 
@@ -76,15 +77,14 @@ func TestApiRouter_postFailure(t *testing.T) {
 		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Get(context)
+	// Removed direct handler invocation; we'll only test via HTTP layer
 
 	entity := Test{entity.BaseEntity{Id: 2, Name: "test"}}
 	w := httptest.NewRecorder()
 
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
-	jsonEntity, _ := serializer.Serialize(entity)
+	jsonEntity, _ := s.Serialize(entity, serializer.SerializeOptions{})
 	req, _ := http.NewRequest("POST", "/api/test", bytes.NewReader([]byte(jsonEntity+"salt")))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")

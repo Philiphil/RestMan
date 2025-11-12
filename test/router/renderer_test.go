@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/philiphil/restman/format"
-	. "github.com/philiphil/restman/router"
+	. "github.com/philiphil/restman/router/renderer"
 )
 
 func TestSerializerRenderer(t *testing.T) {

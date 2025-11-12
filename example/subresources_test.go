@@ -28,7 +28,7 @@ func (a Author) SetId(id any) entity.Entity {
 	a.Id = entity.CastId(id)
 	return a
 }
-func (a Author) ToEntity() Author       { return a }
+func (a Author) ToEntity() Author        { return a }
 func (a Author) FromEntity(e Author) any { return e }
 
 type Book struct {
@@ -43,7 +43,7 @@ func (b Book) SetId(id any) entity.Entity {
 	b.Id = entity.CastId(id)
 	return b
 }
-func (b Book) ToEntity() Book       { return b }
+func (b Book) ToEntity() Book        { return b }
 func (b Book) FromEntity(e Book) any { return e }
 
 func getSubresourceDB() *gorm.DB {

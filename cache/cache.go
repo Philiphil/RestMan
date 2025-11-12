@@ -49,22 +49,22 @@ func (r *RedisCache[E]) generateCacheKey(ent entity.Entity) string {
 }
 
 // Set stores an entity in the Redis cache.
-func (r *RedisCache[E]) Set(ent E) error {
+func (r *RedisCache[E]) Set(ctx context.Context, ent E) error {
 	key := r.generateCacheKey(ent)
 	data, err := json.Marshal(ent)
 	if err != nil {
 		return err
 	}
 
-	return r.Client.Set(context.Background(), key, data, r.lifetime).Err()
+	return r.Client.Set(ctx, key, data, r.lifetime).Err()
 }
 
 // Get retrieves an entity from the Redis cache by its ID.
-func (r *RedisCache[E]) Get(ent E) (E, error) {
+func (r *RedisCache[E]) Get(ctx context.Context, ent E) (E, error) {
 	var result E
 	key := r.generateCacheKey(ent)
 
-	data, err := r.Client.Get(context.Background(), key).Result()
+	data, err := r.Client.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return result, fmt.Errorf("cache miss for key: %s", key)
 	} else if err != nil {
@@ -76,7 +76,7 @@ func (r *RedisCache[E]) Get(ent E) (E, error) {
 }
 
 // Delete removes an entity from the Redis cache.
-func (r *RedisCache[E]) Delete(ent E) error {
+func (r *RedisCache[E]) Delete(ctx context.Context, ent E) error {
 	key := r.generateCacheKey(ent)
-	return r.Client.Del(context.Background(), key).Err()
+	return r.Client.Del(ctx, key).Err()
 }

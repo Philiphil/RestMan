@@ -1,13 +1,12 @@
 package router_test
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/orm"
@@ -29,8 +28,8 @@ func TestApiRouter_Head(t *testing.T) {
 		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Head(context)
+	// Removed direct Head handler invocation; use HTTP flow only
+	ctx := context.Background()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("HEAD", "/api/test/1", nil)
@@ -42,11 +41,11 @@ func TestApiRouter_Head(t *testing.T) {
 	}
 
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(ctx, &entity)
 	req, _ = http.NewRequest("HEAD", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
-	serializer := serializer.NewSerializer(format.JSON)
-	json, _ := serializer.Serialize(entity)
+	s := serializer.NewSerializer(format.JSON)
+	json, _ := s.Serialize(entity, serializer.SerializeOptions{})
 	if w.Header().Get("Content-Type") != "application/json" {
 		t.Error("Content-Type should be application/json")
 	}

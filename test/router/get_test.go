@@ -1,13 +1,12 @@
 package router_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/philiphil/restman/format"
 	"github.com/philiphil/restman/orm"
@@ -29,11 +28,10 @@ func TestApiRouter_Get(t *testing.T) {
 		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Get(context)
 
+	// Create entity via ORM using a proper context.Context (not calling handler directly)
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(context.Background(), &entity)
 
 	w := httptest.NewRecorder()
 
@@ -44,9 +42,9 @@ func TestApiRouter_Get(t *testing.T) {
 		fmt.Println(w.Body.String())
 		t.Error("Failed to start server")
 	}
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 	medium := Test{}
-	serializer.Deserialize(w.Body.String(), &medium)
+	s.Deserialize(w.Body.String(), &medium)
 	if medium.Id != entity.Id {
 		t.Error("Expected entity with id " + fmt.Sprint(entity.Id) + " but got " + fmt.Sprint(medium.Id))
 	}
@@ -74,7 +72,7 @@ func TestApiRouter_GetXML(t *testing.T) {
 	test_.AllowRoutes(r)
 
 	entity := Test{entity.BaseEntity{Id: 42}}
-	repo.Create(&entity)
+	repo.Create(context.Background(), &entity)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/test/42", nil)
@@ -120,9 +118,9 @@ func TestApiRouter_GetListCSV(t *testing.T) {
 	entity1 := Test{entity.BaseEntity{Id: 1}}
 	entity2 := Test{entity.BaseEntity{Id: 2}}
 	entity3 := Test{entity.BaseEntity{Id: 3}}
-	repo.Create(&entity1)
-	repo.Create(&entity2)
-	repo.Create(&entity3)
+	repo.Create(context.Background(), &entity1)
+	repo.Create(context.Background(), &entity2)
+	repo.Create(context.Background(), &entity3)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/test", nil)
@@ -135,8 +133,9 @@ func TestApiRouter_GetListCSV(t *testing.T) {
 	}
 
 	// Check content type
-	if w.Header().Get("Content-Type") != "text/csv" {
-		t.Errorf("Expected Content-Type text/csv but got %s", w.Header().Get("Content-Type"))
+	expectedContentType := "text/csv; charset=utf-8"
+	if w.Header().Get("Content-Type") != expectedContentType {
+		t.Errorf("Expected Content-Type %s but got %s", expectedContentType, w.Header().Get("Content-Type"))
 	}
 
 	body := w.Body.String()

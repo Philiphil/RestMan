@@ -22,6 +22,11 @@ func (r *ApiRouter[T]) GetConfiguration(configurationType configuration.Configur
 			return routeValue, nil
 		}
 	}
+	//I should create a store or something to cache the potential fallbacks
+	// to avoid calling GetRouteWideConfiguration multiple times for the same configuration
+	//for example, Batch post will translate to
+	//BatchPost -> BatchGet -> Post -> Get -> RouterWide
+	//its not a huge deal but it could be optimized
 	return r.GetRouterWideConfiguration(configurationType)
 }
 
@@ -67,14 +72,95 @@ func (r *ApiRouter[T]) _GetRouteWideConfiguration(configurationType configuratio
 // In case of BATCH + WRITE route, both fallback mechanisms can be applied
 // does this makes sense?
 // BatchPost -> BatchGet -> Post -> Get
+// this is quite ugly but I didnt wanted to get recursion shit going on here
 func (r *ApiRouter[T]) GetRouteWideConfigurationFallback(configurationType configuration.ConfigurationType, routeType route.RouteType) (configuration.Configuration, error) {
-	//not implemented yet
 
 	listOfFallbackableConfigurationType := []configuration.ConfigurationType{
 		configuration.OutputSerializationGroupsType,
 	}
 
 	if !slices.Contains(listOfFallbackableConfigurationType, configurationType) {
+		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	}
+
+	batchToSingleConf, err := r.GetConfiguration(configuration.BatchRouteConfigurationDefaultToSingleRouteConfigurationType, routeType)
+	//I need to do some GetConfigurationBool or something.
+	if err != nil {
+		return configuration.Configuration{}, err
+	}
+	writeToReadConf, err := r.GetConfiguration(configuration.WriteRouteOutputShouldDefaultToReadOutputType, routeType)
+	if err != nil {
+		return configuration.Configuration{}, err
+	}
+	batchToSingle, err := batchToSingleConf.GetValueAsBool()
+	if err != nil {
+		return configuration.Configuration{}, err
+	}
+	writeToRead, err := writeToReadConf.GetValueAsBool()
+	if err != nil {
+		return configuration.Configuration{}, err
+	}
+	if !batchToSingle && !writeToRead {
+		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	}
+
+	// now we need to find a suitable fallback configuration depending on the routeType
+	switch routeType {
+	case route.BatchGet:
+		//try Get
+		if batchToSingle {
+			return r._GetRouteWideConfiguration(configurationType, route.Get)
+		}
+	case route.BatchPost:
+		// BatchPost -> BatchGet -> Post -> Get
+		if batchToSingle {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.BatchGet); err == nil {
+				return config, nil
+			}
+		}
+		if writeToRead {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.Post); err == nil {
+				return config, nil
+			}
+			if batchToSingle {
+				return r._GetRouteWideConfiguration(configurationType, route.Get)
+			}
+		}
+	case route.BatchPut:
+		// BatchPut -> BatchGet -> Put -> Get
+		if batchToSingle {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.BatchGet); err == nil {
+				return config, nil
+			}
+		}
+		if writeToRead {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.Put); err == nil {
+				return config, nil
+			}
+			if batchToSingle {
+				return r._GetRouteWideConfiguration(configurationType, route.Get)
+			}
+		}
+	case route.BatchPatch:
+		// BatchPatch -> BatchGet -> Patch -> Get
+		if batchToSingle {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.BatchGet); err == nil {
+				return config, nil
+			}
+		}
+		if writeToRead {
+			if config, err := r._GetRouteWideConfiguration(configurationType, route.Patch); err == nil {
+				return config, nil
+			}
+			if batchToSingle {
+				return r._GetRouteWideConfiguration(configurationType, route.Get)
+			}
+		}
+	case route.Post, route.Put, route.Patch:
+		// Post/Put/Patch -> Get
+		if writeToRead {
+			return r._GetRouteWideConfiguration(configurationType, route.Get)
+		}
 		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
 	}
 

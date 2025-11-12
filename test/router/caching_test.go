@@ -47,7 +47,6 @@ func TestApiRouter_HandleCaching(t *testing.T) {
 	)
 	test_.AllowRoutes(SetupRouter())
 
-	// Créer la requête AVANT d'appeler HandleCaching
 	recorder := httptest.NewRecorder()
 	testContext, _ := gin.CreateTestContext(recorder)
 	testContext.Request = httptest.NewRequest("GET", "/api/test/1", nil)
@@ -79,7 +78,6 @@ func TestApiRouter_HandleCaching(t *testing.T) {
 	)
 	test2_.AllowRoutes(SetupRouter())
 
-	// Créer la requête AVANT d'appeler HandleCaching
 	recorder = httptest.NewRecorder()
 	testContext, _ = gin.CreateTestContext(recorder)
 	testContext.Request = httptest.NewRequest("GET", "/api/test/1", nil)

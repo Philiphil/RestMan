@@ -4,11 +4,11 @@ import (
 	"reflect"
 )
 
-func filterByGroupsStruct[T any](obj T, groups ...string) T {
+func filterByGroupsStruct[T any](obj T, groups []string, sparseFields map[string][]string, currentPath string) T {
 	value := reflect.ValueOf(obj)
 	elemType := value.Type()
 
-	if elemType.Kind() == reflect.Ptr {
+	if elemType.Kind() == reflect.Pointer {
 		if value.IsNil() {
 			return obj
 		}
@@ -16,14 +16,20 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 		value = DereferenceValueIfPointer(value)
 	}
 
-	if cachedEntry, ok := globalCache.Get(elemType, groups); ok {
-		newValue := reflect.New(cachedEntry.filteredType).Elem()
-		if len(cachedEntry.fieldMappings) > 0 {
-			populateStructFieldsFast(newValue, value, cachedEntry.fieldMappings)
-		} else {
-			populateStructFields(newValue, value, cachedEntry.filteredType, groups)
+	// Disable cache when sparse fields are specified to avoid incorrect filtering
+	useCacheEnabled := len(sparseFields) == 0
+
+	if useCacheEnabled {
+		if cachedEntry, ok := globalCache.Get(elemType, groups); ok {
+			newValue := reflect.New(cachedEntry.filteredType).Elem()
+			if len(cachedEntry.fieldMappings) > 0 {
+				populateStructFieldsFast(newValue, value, cachedEntry.fieldMappings)
+			} else {
+				populateStructFields(newValue, value, cachedEntry.filteredType)
+			}
+			// No sparse fields filtering needed since cache doesn't support it
+			return newValue.Interface().(T)
 		}
-		return newValue.Interface().(T)
 	}
 
 	var newFields []reflect.StructField
@@ -38,7 +44,11 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 				fieldValue := value.Field(i)
 
 				if IsStruct(field.Type) {
-					filteredElem := FilterByGroups(fieldValue.Interface(), groups...)
+					nestedPath := field.Name
+					if currentPath != "" {
+						nestedPath = currentPath + "." + field.Name
+					}
+					filteredElem := filterByGroupsWithPath(fieldValue.Interface(), groups, sparseFields, nestedPath)
 					newField := reflect.StructField{
 						Name: field.Name,
 						Type: reflect.TypeOf(filteredElem),
@@ -77,11 +87,16 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 	}
 
 	newStructType := reflect.StructOf(newFields)
-	entry := &typeCacheEntry{
-		filteredType: newStructType,
-		fieldMappings: mappings,
+
+	// Only cache if sparse fields are not being used
+	if useCacheEnabled {
+		entry := &typeCacheEntry{
+			filteredType:  newStructType,
+			fieldMappings: mappings,
+		}
+		globalCache.Set(elemType, groups, entry)
 	}
-	globalCache.Set(elemType, groups, entry)
+
 	newValue := reflect.New(newStructType).Elem()
 
 	if originalTypeName != "" && len(newFields) > 0 {
@@ -90,10 +105,74 @@ func filterByGroupsStruct[T any](obj T, groups ...string) T {
 	if len(mappings) > 0 {
 		populateStructFieldsFast(newValue, value, mappings)
 	} else {
-		populateStructFields(newValue, value, newStructType, groups)
+		populateStructFields(newValue, value, newStructType)
+	}
+
+	// Apply sparse fields filtering if specified
+	if len(sparseFields) > 0 {
+		filteredValue := applySparseFieldsFilter(newValue, sparseFields, currentPath)
+		return filteredValue.Interface().(T)
 	}
 
 	return newValue.Interface().(T)
+}
+
+// applySparseFieldsFilter removes fields not requested in sparse fields.
+// Fields are actually removed from the struct, not set to zero/nil.
+func applySparseFieldsFilter(value reflect.Value, sparseFields map[string][]string, currentPath string) reflect.Value {
+	requestedFields, hasSparseFields := sparseFields[currentPath]
+	if !hasSparseFields {
+		return value
+	}
+
+	// Build set of requested field names for O(1) lookup
+	requestedSet := make(map[string]bool)
+	for _, field := range requestedFields {
+		requestedSet[field] = true
+	}
+
+	// Build new struct type with only requested fields
+	var newFields []reflect.StructField
+	var fieldMappings []fieldMapping
+	valueType := value.Type()
+
+	srcIdx := 0
+	destIdx := 0
+	for i := 0; i < valueType.NumField(); i++ {
+		field := valueType.Field(i)
+
+		// Check if field is requested (use JSON tag name if available)
+		fieldName := field.Name
+		jsonTag := field.Tag.Get("json")
+		if jsonTag != "" && jsonTag != "-" {
+			fieldName = jsonTag
+		}
+
+		if requestedSet[fieldName] || requestedSet[field.Name] {
+			newFields = append(newFields, field)
+			fieldMappings = append(fieldMappings, fieldMapping{srcIndex: srcIdx, destIndex: destIdx})
+			destIdx++
+		}
+		srcIdx++
+	}
+
+	// If no fields match, return empty struct of same type
+	if len(newFields) == 0 {
+		return reflect.Zero(value.Type())
+	}
+
+	// Create new struct with only requested fields
+	newStructType := reflect.StructOf(newFields)
+	newValue := reflect.New(newStructType).Elem()
+
+	// Copy field values
+	for _, mapping := range fieldMappings {
+		srcField := value.Field(mapping.srcIndex)
+		destField := newValue.Field(mapping.destIndex)
+		destField.Set(srcField)
+	}
+
+	return newValue
 }
 
 func populateStructFieldsFast(newValue, value reflect.Value, mappings []fieldMapping) {
@@ -101,17 +180,17 @@ func populateStructFieldsFast(newValue, value reflect.Value, mappings []fieldMap
 		srcField := value.Field(mapping.srcIndex)
 		destField := newValue.Field(mapping.destIndex)
 		destFieldType := newValue.Type().Field(mapping.destIndex)
-		assignFieldValue(destFieldType, destField, srcField)
+		AssignFieldValue(destFieldType, destField, srcField)
 	}
 }
 
-func populateStructFields(newValue, value reflect.Value, structType reflect.Type, groups []string) {
+func populateStructFields(newValue, value reflect.Value, structType reflect.Type) {
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
 		fieldName := field.Name
 		fieldValue := value.FieldByName(fieldName)
 		newFieldValue := newValue.Field(i)
-		assignFieldValue(field, newFieldValue, fieldValue)
+		AssignFieldValue(field, newFieldValue, fieldValue)
 	}
 }
 

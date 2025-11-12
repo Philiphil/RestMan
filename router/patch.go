@@ -11,53 +11,40 @@ import (
 // Patch handles HTTP PATCH requests to partially update an existing entity.
 func (r *ApiRouter[T]) Patch(c *gin.Context) {
 	id := c.Param("id")
-	obj, err := r.Orm.GetByID(id)
+	obj, err := r.Orm.GetByID(c.Request.Context(), id)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
+		abortWithApiError(c, errors.ErrNotFound)
 		return
 	}
 
 	if err = r.WritingCheck(c, obj); err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
 
 	groups, errGroups := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Patch)
 	if errGroups != nil {
-		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		abortWithApiError(c, errors.ErrInternal)
 		return
 	}
 
 	if err = UnserializeBodyAndMerge(c, obj, groups.Values...); err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
 	var cast entity.Entity
 	cast = *obj
 	cast = cast.SetId(id)
-	convertedEntity, _ := cast.(T)
-	err = r.Orm.Update(&convertedEntity)
+	convertedEntity, ok := cast.(T)
+	if !ok {
+		abortWithApiError(c, errors.ErrInternal)
+		return
+	}
+	err = r.Orm.Update(c.Request.Context(), &convertedEntity)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
+		abortWithApiError(c, errors.ErrDatabaseIssue)
 		return
 	}
 
-	responseFormat, errParse := ParseAcceptHeader(c.GetHeader("Accept"))
-	if errParse != nil {
-		c.AbortWithStatusJSON(errParse.(errors.ApiError).Code, errParse.(errors.ApiError).Message)
-		return
-	}
-
-	//what is sent back should use the "get" serialization groups
-	outputGroups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
-		return
-	}
-
-	c.Render(200, SerializerRenderer{
-		Data:   obj,
-		Format: responseFormat,
-		Groups: outputGroups,
-	})
+	r.Render(c, 200, convertedEntity, route.Patch)
 }

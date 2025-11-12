@@ -2,6 +2,8 @@ package configuration
 
 import (
 	"strconv"
+
+	"github.com/philiphil/restman/errors"
 )
 
 // ConfigurationType defines the type of configuration option being set
@@ -76,8 +78,6 @@ const (
 	OutputSerializationGroupOverwriteClientControlType // Allows clients to overwrite serialization groups
 	OutputSerializationGroupOverwriteParameterNameType // Query parameter name for overwriting serialization groups
 
-	// Unimplemented configuration types - reserved for future use
-
 	// Whether write routes default to read output serialization
 	//seems weird at first but what should be the output of POST if POST has no specific output serialization groups configured?
 	//logicaly it should be the same as GET (read)
@@ -89,10 +89,18 @@ const (
 	// this will allow then to fallback to single entity route configuration
 	BatchRouteConfigurationDefaultToSingleRouteConfigurationType
 
+	// Unimplemented configuration types - reserved for future use
 	BatchLimitType            // Will limit the number of items in batch operations ...
 	FormatEnabledType         // Will enable/disable specific format
 	DefaultFilteringType      // Will add default filters to queries
 	InMemoryCachingPolicyType // Will configure in-memory caching
+
+	IncludeEnabledType            // Will enable/disable inclusion of related entities
+	IncludeParameterNameType      // Will set the query parameter name for inclusion of related entities
+	IncludeMaxDepthType           // Will set the maximum depth for included related entities
+	SparseFieldsEnabledType       // Will enable/disable sparse fieldsets
+	SparseFieldsParameterNameType // Will set the query parameter name for sparse fieldsets
+
 )
 
 // Configuration represents a single configuration option with its type and values.
@@ -109,6 +117,27 @@ const (
 type Configuration struct {
 	Type   ConfigurationType
 	Values []string
+}
+
+func (c Configuration) GetValueAsString() (string, error) {
+	if len(c.Values) > 0 {
+		return c.Values[0], nil
+	}
+	return "", errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+}
+
+func (c Configuration) GetValueAsBool() (bool, error) {
+	if len(c.Values) > 0 {
+		return strconv.ParseBool(c.Values[0])
+	}
+	return false, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+}
+
+func (c Configuration) GetValueAsInt() (int, error) {
+	if len(c.Values) > 0 {
+		return strconv.Atoi(c.Values[0])
+	}
+	return 0, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
 }
 
 // NetworkCachingPolicy sets the HTTP Cache-Control max-age header in seconds.
@@ -291,4 +320,11 @@ func WriteRouteOutputShouldDefaultToReadOutput(enabled bool) Configuration {
 
 func BatchRouteConfigurationDefaultToSingleRouteConfiguration(enabled bool) Configuration {
 	return Configuration{Type: BatchRouteConfigurationDefaultToSingleRouteConfigurationType, Values: []string{strconv.FormatBool(enabled)}}
+}
+func SparseFieldsEnabled(enabled bool) Configuration {
+	return Configuration{Type: SparseFieldsEnabledType, Values: []string{strconv.FormatBool(enabled)}}
+}
+
+func SparseFieldsParameterName(name string) Configuration {
+	return Configuration{Type: SparseFieldsParameterNameType, Values: []string{name}}
 }

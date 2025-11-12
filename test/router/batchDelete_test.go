@@ -1,6 +1,7 @@
 package router_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,10 +24,10 @@ func TestApiRouter_BatchDelete(t *testing.T) {
 	)
 	test_.Routes[route.BatchDelete] = route.Route{RouteType: route.BatchDelete}
 	w := httptest.NewRecorder()
-	repo.Create(&Test{entity.BaseEntity{Id: 1}})
-	repo.Create(&Test{entity.BaseEntity{Id: 5}})
-	repo.Create(&Test{entity.BaseEntity{Id: 8}})
-	repo.Create(&Test{entity.BaseEntity{Id: 99}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 1}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 5}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 8}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 99}})
 
 	test_.AllowRoutes(r)
 

@@ -1,4 +1,4 @@
-package router
+package renderer
 
 import (
 	"net/http"
@@ -15,36 +15,36 @@ type SerializerRenderer struct {
 }
 
 var (
-	jsonContentType       = []string{"application/json; charset=utf-8"}
-	jsonldContentType     = []string{"application/ld-json; charset=utf-8"}
-	xmlContentType        = []string{"application/xml; charset=utf-8"}
-	csvContentType        = []string{"text/csv"}
+	jsonContentType        = []string{"application/json; charset=utf-8"}
+	jsonldContentType      = []string{"application/ld+json; charset=utf-8"}
+	xmlContentType         = []string{"application/xml; charset=utf-8"} // Standard RFC 7303
+	csvContentType         = []string{"text/csv; charset=utf-8"}        // Standard RFC 4180
 	messagepackContentType = []string{"application/msgpack"}
 )
 
 var serializerPools = map[format.Format]*sync.Pool{
 	format.JSON: {
-		New: func() interface{} {
+		New: func() any {
 			return serializer.NewSerializer(format.JSON)
 		},
 	},
 	format.JSONLD: {
-		New: func() interface{} {
+		New: func() any {
 			return serializer.NewSerializer(format.JSONLD)
 		},
 	},
 	format.XML: {
-		New: func() interface{} {
+		New: func() any {
 			return serializer.NewSerializer(format.XML)
 		},
 	},
 	format.CSV: {
-		New: func() interface{} {
+		New: func() any {
 			return serializer.NewSerializer(format.CSV)
 		},
 	},
 	format.MESSAGEPACK: {
-		New: func() interface{} {
+		New: func() any {
 			return serializer.NewSerializer(format.MESSAGEPACK)
 		},
 	},
@@ -69,7 +69,9 @@ func (r SerializerRenderer) Render(w http.ResponseWriter) (err error) {
 	s := getSerializer(r.Format)
 	defer putSerializer(r.Format, s)
 
-	str, err := s.Serialize(r.Data, r.Groups...)
+	str, err := s.Serialize(r.Data, serializer.SerializeOptions{
+		Groups: r.Groups,
+	})
 	if err != nil {
 		return err
 	}
@@ -77,19 +79,13 @@ func (r SerializerRenderer) Render(w http.ResponseWriter) (err error) {
 	return err
 }
 
-// WriteContentType (JSON) writes JSON ContentType.
+// WriteContentType sets the Content-Type header based on the format.
+// It now uses GetContentType to centralize the logic.
 func (r SerializerRenderer) WriteContentType(w http.ResponseWriter) {
-	switch r.Format {
-	case format.JSON:
-		writeContentType(w, jsonContentType)
-	case format.JSONLD:
-		writeContentType(w, jsonldContentType)
-	case format.XML:
-		writeContentType(w, xmlContentType)
-	case format.CSV:
-		writeContentType(w, csvContentType)
-	case format.MESSAGEPACK:
-		writeContentType(w, messagepackContentType)
+	contentType := GetContentType(r.Format)
+	if len(contentType) > 0 {
+		// The writeContentType helper expects a []string.
+		writeContentType(w, contentType)
 	}
 }
 
@@ -97,5 +93,24 @@ func writeContentType(w http.ResponseWriter, value []string) {
 	header := w.Header()
 	if val := header["Content-Type"]; len(val) == 0 {
 		header["Content-Type"] = value
+	}
+}
+
+// GetContentType returns the full content type string for a given format.
+func GetContentType(f format.Format) []string {
+	switch f {
+	case format.JSON:
+		return jsonContentType
+	case format.JSONLD:
+		return jsonldContentType
+	case format.XML:
+		return xmlContentType
+	case format.CSV:
+		return csvContentType
+	case format.MESSAGEPACK:
+		return messagepackContentType
+	default:
+		// Fallback to the format itself if unknown, though this should be rare.
+		return []string{string(f)}
 	}
 }

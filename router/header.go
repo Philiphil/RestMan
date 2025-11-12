@@ -32,7 +32,9 @@ func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 	}
 
 	if cached, ok := acceptHeaderCache.Load(acceptHeader); ok {
-		return cached.(format.Format), nil
+		if fmt, ok := cached.(format.Format); ok {
+			return fmt, nil
+		}
 	}
 
 	mediaTypes := strings.Split(acceptHeader, ",")
@@ -100,6 +102,9 @@ func ParseTypeFromString(str string) format.Format {
 	}
 	if strings.Contains(lower, "csv") {
 		return format.CSV
+	}
+	if strings.Contains(lower, "msgpack") {
+		return format.MESSAGEPACK
 	}
 	return format.Unknown
 }

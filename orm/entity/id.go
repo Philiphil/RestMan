@@ -25,7 +25,10 @@ func CastId(id any) ID {
 	case uint:
 		return ID(v)
 	case string:
-		convertedID, _ := strconv.ParseUint(v, 10, 64)
+		convertedID, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return NullId
+		}
 		return ID(convertedID)
 	}
 

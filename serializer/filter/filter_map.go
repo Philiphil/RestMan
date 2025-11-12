@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func filterByGroupsMap[T any](obj T, groups ...string) T {
+func filterByGroupsMap[T any](obj T, groups []string, sparseFields map[string][]string, currentPath string) T {
 	value := DereferenceValueIfPointer(reflect.ValueOf(obj))
 	elemType := DereferenceTypeIfPointer(value.Type())
 
@@ -16,7 +16,7 @@ func filterByGroupsMap[T any](obj T, groups ...string) T {
 	for iter.Next() {
 		key := iter.Key()
 		val := iter.Value()
-		filteredVal := FilterByGroups(val.Interface(), groups...)
+		filteredVal := filterByGroupsWithPath(val.Interface(), groups, sparseFields, currentPath)
 
 		filteredValValue, ok := filteredVal.(reflect.Value)
 		if !ok {
@@ -41,7 +41,7 @@ func filterByGroupsMap[T any](obj T, groups ...string) T {
 				// Try to find matching field in filtered struct
 				srcFieldValue := filteredValValue.FieldByName(destField.Name)
 				if srcFieldValue.IsValid() && !srcFieldValue.IsZero() {
-					assignFieldValue(destField, destFieldValue, srcFieldValue)
+					AssignFieldValue(destField, destFieldValue, srcFieldValue)
 				}
 			}
 
@@ -55,7 +55,7 @@ func filterByGroupsMap[T any](obj T, groups ...string) T {
 				destType := elemType.Elem()
 				destValue := reflect.New(destType).Elem()
 				if destType.NumField() > 0 {
-					assignFieldValue(destType.Field(0), destValue.Field(0), filteredValValue)
+					AssignFieldValue(destType.Field(0), destValue.Field(0), filteredValValue)
 				}
 				mapValue.SetMapIndex(key, destValue)
 			}

@@ -8,33 +8,18 @@ import (
 
 // Get handles HTTP GET requests to retrieve a single entity by ID.
 func (r *ApiRouter[T]) Get(c *gin.Context) {
-	object, err := r.Orm.GetByID(c.Param("id"))
+	object, err := r.Orm.GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
+		abortWithApiError(c, errors.ErrNotFound)
 		return
 	}
 
 	err = r.ReadingCheck(c, object)
 	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
 
-	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
-		return
-	}
+	r.Render(c, 200, object, route.Get)
 
-	groups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
-		return
-	}
-
-	c.Render(200, SerializerRenderer{
-		Data:   object,
-		Format: responseFormat,
-		Groups: groups,
-	})
 }

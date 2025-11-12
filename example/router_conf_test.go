@@ -27,7 +27,7 @@ func TestRouterConfiguration(t *testing.T) {
 		maps.Values(configuration.DefaultConfiguration())...,
 	)
 	//it is why its really important to only create ApiRouter using the NewApiRouter function
-	//otherwise you will have to fill yourself all the configuration in order to run
+	//otherwise you will have to fill yourself all the required default router configuration values
 
 	//this is what configuration.DefaultConfiguration()) is really doing
 	api = router.NewApiRouter(
@@ -40,6 +40,7 @@ func TestRouterConfiguration(t *testing.T) {
 		configuration.PaginationClientControl(false),
 		configuration.ItemPerPage(100),
 		configuration.MaxItemPerPage(1000),
+		//of course this is an example, it may evolve in the future
 	)
 
 	//when you want to change something like force the pagination
@@ -49,10 +50,13 @@ func TestRouterConfiguration(t *testing.T) {
 		configuration.PaginationClientControl(true),
 	)
 	//your  configuration.PaginationClientControl(true) will actually override the default forced pagination value defined in configuration.DefaultConfiguration()
+	//this will be true on a router level, so all the routes will have pagination client control enabled
+	//which is okay in this case, since only getList route is impacted by this configuration
+	//for other configuration values you might want to specify them on a route per route basis
 
 	//You can also set route specific configuration, for example for route
 	routes := route.DefaultApiRoutes()
-	routes[route.Get].Configuration[configuration.NetworkCachingPolicyType] = configuration.NetworkCachingPolicy(1)
+	routes[route.Get].Configuration[configuration.NetworkCachingPolicyType] = configuration.NetworkCachingPolicy(3600)
 	api = router.NewApiRouter(
 		*orm.NewORM(gormrepository.NewRepository[Test](getDB())),
 		routes,

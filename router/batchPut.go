@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/orm/entity"
 	"github.com/philiphil/restman/route"
@@ -13,33 +12,31 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	var entities []*T
 	if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {
 		//unserializable
-		c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
+		abortWithApiError(c, errors.ErrBadFormat)
 		return
 	} else if len(entities) == 0 {
 		//empty body
-		c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
+		abortWithApiError(c, errors.ErrBadFormat)
 		return
 	}
 	//I must check the id's first
 	//All of them must have an id and if it's already in use, I must check write permissions
 
-	var ids []entity.ID
-	var preexistingEntities []*T
-	for _, e := range entities {
-		if (*e).GetId() != entity.NullId {
-			ids = append(ids, (*e).GetId())
-		} else {
-			//null id is not allowed
-			c.AbortWithStatusJSON(errors.ErrBadFormat.Code, errors.ErrBadFormat.Message)
+	ids := make([]entity.ID, len(entities))
+	for i, e := range entities {
+		id := (*e).GetId()
+		if id == entity.NullId {
+			abortWithApiError(c, errors.ErrBadFormat)
 			return
 		}
+		ids[i] = id
 	}
 	//try a batch get
-	preexistingEntities, err := r.Orm.FindByIDs(ids)
+	preexistingEntities, err := r.Orm.FindByIDs(c.Request.Context(), ids)
 	if err != nil {
 		//check only for database issue, non existing entities are not a problem
 		if err != errors.NotAllItemFound {
-			c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
+			abortWithApiError(c, errors.ErrDatabaseIssue)
 			return
 		}
 	}
@@ -47,32 +44,17 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	if len(preexistingEntities) > 0 {
 		for _, e := range preexistingEntities {
 			if err := r.WritingCheck(c, e); err != nil {
-				c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+				abortWithError(c, err)
 				return
 			}
 		}
 	}
 
-	if err := r.Orm.Update(entities...); err != nil {
-		c.AbortWithStatusJSON(errors.ErrDatabaseIssue.Code, errors.ErrDatabaseIssue.Message)
-		return
-	}
-	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+	if err := r.Orm.Update(c.Request.Context(), entities...); err != nil {
+		abortWithApiError(c, errors.ErrDatabaseIssue)
 		return
 	}
 
-	groups, err := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Post)
-	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
-		return
-	}
-
-	c.Render(204, SerializerRenderer{
-		Data:   &entities,
-		Format: responseFormat,
-		Groups: groups.Values, //what is sent shall be compliant to get
-	})
+	r.Render(c, 200, entities, route.BatchPut)
 
 }

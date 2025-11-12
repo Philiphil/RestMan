@@ -26,8 +26,9 @@ func DefaultConfiguration() map[ConfigurationType]Configuration {
 		OutputSerializationGroupOverwriteClientControlType: OutputSerializationGroupOverwriteClientControl(false),
 		OutputSerializationGroupOverwriteParameterNameType: OutputSerializationGroupOverwriteParameterName("groupOverwrite"),
 
-		//not implemented yet
 		WriteRouteOutputShouldDefaultToReadOutputType:                WriteRouteOutputShouldDefaultToReadOutput(true),
 		BatchRouteConfigurationDefaultToSingleRouteConfigurationType: BatchRouteConfigurationDefaultToSingleRouteConfiguration(true),
+		SparseFieldsEnabledType:                                      SparseFieldsEnabled(true),
+		SparseFieldsParameterNameType:                                SparseFieldsParameterName("fields"),
 	}
 }

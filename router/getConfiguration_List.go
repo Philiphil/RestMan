@@ -127,7 +127,11 @@ func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
 		sortParams[field] = order
 	}
 	if len(sortParams) == 0 {
-		sortParams["id"] = defaultSortOrder.Values[0]
+		if len(defaultSortOrder.Values) >= 2 {
+			sortParams["id"] = defaultSortOrder.Values[1]
+		} else {
+			sortParams["id"] = "ASC"
+		}
 	}
 
 	return sortParams, nil

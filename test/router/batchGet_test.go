@@ -1,6 +1,7 @@
 package router_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -61,18 +62,18 @@ func TestApiRouter_GetListOrBatchGet(t *testing.T) {
 	)
 	test_.Routes[route.BatchGet] = route.Route{RouteType: route.BatchGet}
 	w := httptest.NewRecorder()
-	repo.Create(&Test{entity.BaseEntity{Id: 1}})
-	repo.Create(&Test{entity.BaseEntity{Id: 5}})
-	repo.Create(&Test{entity.BaseEntity{Id: 8}})
-	repo.Create(&Test{entity.BaseEntity{Id: 99}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 1}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 5}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 8}})
+	repo.Create(context.Background(), &Test{entity.BaseEntity{Id: 99}})
 	test_.AllowRoutes(r)
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
 	w.Body.Reset()
 	req, _ := http.NewRequest("GET", "/api/test?ids=1&ids=99", nil)
 	r.ServeHTTP(w, req)
 	entities := make([]Test, 0)
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 2 {
 		fmt.Println(entities)
 		t.Error("Expected 2 entities")
@@ -82,7 +83,7 @@ func TestApiRouter_GetListOrBatchGet(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?ids[]=1&ids[]=99", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 2 {
 		fmt.Println(entities)
 		t.Error("Expected 2 entities")
@@ -92,7 +93,7 @@ func TestApiRouter_GetListOrBatchGet(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?ids=1,99", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 2 {
 		fmt.Println(entities)
 		t.Error("Expected 2 entities")
@@ -109,7 +110,7 @@ func TestApiRouter_GetListOrBatchGet(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/test?ids=", nil)
 	r.ServeHTTP(w, req)
 	entities = entities[:0]
-	serializer.Deserialize(w.Body.String(), &entities)
+	s.Deserialize(w.Body.String(), &entities)
 	if len(entities) != 0 {
 		t.Error("Expected 0 entities")
 	}

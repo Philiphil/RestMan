@@ -144,13 +144,22 @@ func Like[T any](field string, value T) Specification {
 	}
 }
 
-// Ilike creates a specification for case-insensitive pattern matching.
+// Ilike isnt handled by SQLite, so we implement it manually to be cross-platform.
+type ilikeSpecification struct {
+	field string
+	value any
+}
+
+func (s ilikeSpecification) GetQuery() string {
+	return fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", s.field)
+}
+func (s ilikeSpecification) GetValues() []any { return []any{s.value} }
+
+// Ilike creates a case-insensitive pattern matching specification across dialects.
+// Uses LOWER(field) LIKE LOWER(?) which works on SQLite, Postgres, MySQL.
+//this is not as performant as native ILIKE in Postgres, but is more portable.
 func Ilike[T any](field string, value T) Specification {
-	return binaryOperatorSpecification[T]{
-		field:    field,
-		operator: "ILIKE",
-		value:    value,
-	}
+	return ilikeSpecification{field: field, value: value}
 }
 
 type stringSpecification string
@@ -167,6 +176,7 @@ func (s stringSpecification) GetValues() []any {
 func IsNull(field string) Specification {
 	return stringSpecification(fmt.Sprintf("%s IS NULL", field))
 }
+
 // IsNotNull creates a specification for checking if a field is NOT NULL.
 func IsNotNull(field string) Specification {
 	return stringSpecification(fmt.Sprintf("%s IS NOT NULL", field))

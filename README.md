@@ -443,21 +443,23 @@ go test ./test/router/...
 ## Roadmap
 
 ### TODO/ IDEAS
-- [ ] Add random configuration to clarify behavior, suggest best practices and allow flexibility  (right now clarifying backup configuration)
+- [ ] sparse fields
+- [ ] ?include relationship
+- [ ] Test refactor
 - [ ] Filtering implementation
+- [ ] Finishing redis implementation
 - [ ] UUID compatibility for entity.ID
 - [ ] Force lowercase option for JSON keys
-- [ ] Automatic Redis caching integration in router
-- [ ] GraphQL support
+- [ ] Proper jsonLD/hydra
+- [ ] json:api
 - [ ] Hooks system for lifecycle events
 - [ ] Built-in `requireOwnership` for firewall or something
 - [ ] Rate limiting middleware (Ai suggestion)
 - [ ] Audit login middleware (Ai suggestion)
 - [ ] Validation/constraints (Ai suggestion)
-- [ ] Finishing redis implementation
 - [ ] OpenAPI/Swagger documentation generation
 - [ ] Some UI backoffice ?
-- [ ] Graphql like PageInfo object after, before, first, last, pageof 
+- [ ] GraphQL support
 
 
 ## License

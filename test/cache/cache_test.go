@@ -1,6 +1,7 @@
 package cache_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -34,7 +35,7 @@ func TestRedisCache_Set(t *testing.T) {
 
 	mock.ExpectSet(key, data, 60*time.Second).SetVal("OK")
 
-	err := c.Set(ent)
+	err := c.Set(context.Background(), ent)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -55,7 +56,7 @@ func TestRedisCache_Get(t *testing.T) {
 
 	mock.ExpectGet(key).SetVal(string(data))
 
-	result, err := c.Get(ent)
+	result, err := c.Get(context.Background(), ent)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -79,7 +80,7 @@ func TestRedisCache_Get_CacheMiss(t *testing.T) {
 
 	mock.ExpectGet(key).RedisNil()
 
-	_, err := c.Get(ent)
+	_, err := c.Get(context.Background(), ent)
 	if err == nil || err.Error() != fmt.Sprintf("cache miss for key: %s", key) {
 		t.Fatalf("expected cache miss error, got: %v", err)
 	}
@@ -99,7 +100,7 @@ func TestRedisCache_Delete(t *testing.T) {
 
 	mock.ExpectDel(key).SetVal(1)
 
-	err := c.Delete(ent)
+	err := c.Delete(context.Background(), ent)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

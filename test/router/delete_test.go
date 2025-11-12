@@ -1,12 +1,10 @@
 package router_test
 
 import (
-	"testing"
-
+	"context"
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/gin-gonic/gin"
+	"testing"
 
 	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
@@ -26,11 +24,11 @@ func TestApiRouter_delete(t *testing.T) {
 		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Delete(context)
+	// We don't call the handler directly; use a background context for ORM operations
+	ctx := context.Background()
 
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(ctx, &entity)
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest("GET", "/api/test/1", nil)
@@ -46,7 +44,7 @@ func TestApiRouter_delete(t *testing.T) {
 		t.Error("Failed to delete")
 	}
 
-	if object, err := repo.GetByID(1); object != nil && err != nil {
+	if object, err := repo.GetByID(ctx, 1); object != nil && err != nil {
 		t.Error("Failed to delete")
 	}
 

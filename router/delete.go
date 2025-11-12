@@ -8,18 +8,18 @@ import (
 // Delete handles HTTP DELETE requests to remove a single entity by ID.
 func (r *ApiRouter[T]) Delete(c *gin.Context) {
 	id := c.Param("id")
-	object, err := r.Orm.GetByID(id)
+	object, err := r.Orm.GetByID(c.Request.Context(), id)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
+		abortWithApiError(c, errors.ErrNotFound)
 		return
 	}
 	if err = r.WritingCheck(c, object); err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
-	if err = r.Orm.Delete(object); err != nil {
-		c.AbortWithStatusJSON(500, "Database issue")
+	if err = r.Orm.Delete(c.Request.Context(), object); err != nil {
+		abortWithApiError(c, errors.ErrDatabaseIssue)
 		return
 	}
-	c.JSON(204, nil)
+	c.Status(204)
 }

@@ -9,7 +9,7 @@ const (
 	Unknown            = "unknown"
 	JSON               = "application/json"
 	JSONLD             = "application/ld+json"
-	XML                = "text/xml"
-	CSV                = "application/csv"
+	XML                = "application/xml"
+	CSV                = "text/csv"
 	MESSAGEPACK        = "application/msgpack"
 )

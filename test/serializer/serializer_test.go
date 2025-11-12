@@ -12,7 +12,7 @@ import (
 // XML serialization - basic struct
 func TestSerializer_SerializeXML(t *testing.T) {
 	s := NewSerializer(format.XML)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -35,7 +35,7 @@ func TestSerializer_SerializeXML(t *testing.T) {
 func TestSerializer_SerializeXMLSlice(t *testing.T) {
 	s := NewSerializer(format.XML)
 	testSlice := []Test{test, test}
-	serialized, err := s.Serialize(testSlice, "test")
+	serialized, err := s.Serialize(testSlice, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -55,7 +55,7 @@ func TestSerializer_SerializeXMLSlice(t *testing.T) {
 func TestSerializer_SerializeCSV(t *testing.T) {
 	s := NewSerializer(format.CSV)
 	testSlice := []Test{test, test}
-	serialized, err := s.Serialize(testSlice, "test")
+	serialized, err := s.Serialize(testSlice, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,7 +82,7 @@ func TestSerializer_SerializeCSV(t *testing.T) {
 func TestSerializer_SerializeCSVEmpty(t *testing.T) {
 	s := NewSerializer(format.CSV)
 	testSlice := []Test{}
-	serialized, err := s.Serialize(testSlice, "test")
+	serialized, err := s.Serialize(testSlice, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -106,7 +106,7 @@ func TestSerializer_SerializeCSVPrimitives(t *testing.T) {
 		{"Bob", 30, 87.3, false},
 	}
 
-	serialized, err := s.Serialize(testData, "test")
+	serialized, err := s.Serialize(testData, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,7 +129,7 @@ func TestSerializer_SerializeCSVPrimitives(t *testing.T) {
 // CSV error handling - not a slice
 func TestSerializer_SerializeCSVNotSlice(t *testing.T) {
 	s := NewSerializer(format.CSV)
-	_, err := s.Serialize(test, "test")
+	_, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err == nil {
 		t.Error("Should error when serializing non-slice to CSV")
 	}
@@ -139,7 +139,7 @@ func TestSerializer_SerializeCSVNotSlice(t *testing.T) {
 func TestSerializer_SerializeCSVNonStruct(t *testing.T) {
 	s := NewSerializer(format.CSV)
 	testSlice := []int{1, 2, 3}
-	_, err := s.Serialize(testSlice, "test")
+	_, err := s.Serialize(testSlice, SerializeOptions{Groups: []string{"test"}})
 	if err == nil {
 		t.Error("Should error when serializing slice of primitives to CSV")
 	}
@@ -150,7 +150,7 @@ func TestSerializer_Deserialize10(t *testing.T) {
 	test1 := make(map[string]Test)
 	test1["test"] = test
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test1, "test")
+	serialized, err := s.Serialize(test1, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -163,5 +163,21 @@ func TestSerializer_Deserialize10(t *testing.T) {
 		fmt.Println("o[test]:", o["test"])
 		fmt.Println("Expected:", testDeserializedResult)
 		t.Error("Deserialization result does not match expected value")
+	}
+}
+
+func TestSerializer_SerializeMessagePack(t *testing.T) {
+	s := NewSerializer(format.MESSAGEPACK)
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
+	if err != nil {
+		t.Error(err)
+	}
+
+	o := Test{}
+	err = s.Deserialize(serialized, &o)
+	if o != testDeserializedResult || err != nil {
+		fmt.Println("Got:", o)
+		fmt.Println("Expected:", testDeserializedResult)
+		t.Error("MessagePack deserialization failed")
 	}
 }

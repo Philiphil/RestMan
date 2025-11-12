@@ -12,22 +12,22 @@ func (r *ApiRouter[T]) batchDelete(c *gin.Context) {
 	for i, v := range ids {
 		formatedId[i] = entity.CastId(v)
 	}
-	objects, err := r.Orm.FindByIDs(formatedId)
+	objects, err := r.Orm.FindByIDs(c.Request.Context(), formatedId)
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
+		abortWithApiError(c, errors.ErrNotFound)
 		return
 	}
 	for _, object := range objects {
 		if err = r.WritingCheck(c, object); err != nil {
-			c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+			abortWithError(c, err)
 			return
 		}
 	}
-	err = r.Orm.Delete(objects...)
+	err = r.Orm.Delete(c.Request.Context(), objects...)
 	if err != nil {
-		c.AbortWithStatusJSON(500, "Database issue")
+		abortWithApiError(c, errors.ErrDatabaseIssue)
 		return
 	}
 
-	c.JSON(204, nil)
+	c.Status(204)
 }

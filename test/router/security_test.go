@@ -2,6 +2,7 @@ package router_test
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -111,7 +112,7 @@ func TestMain_FireWall(t *testing.T) {
 	}
 	//create a new entity and test to get it
 	repo := orm.NewORM(gormrepository.NewRepository[ProtectedEntity](getDB()))
-	repo.Create(&ProtectedEntity{})
+	repo.Create(context.Background(), &ProtectedEntity{})
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/protected_entity/1", nil)
 	r.ServeHTTP(w, req)
@@ -138,9 +139,9 @@ func TestMain_FireWall(t *testing.T) {
 	w = httptest.NewRecorder()
 	entity := ProtectedEntity{entity.BaseEntity{Id: 2, Name: "test"}}
 
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
-	jsonEntity, _ := serializer.Serialize(entity)
+	jsonEntity, _ := s.Serialize(entity, serializer.SerializeOptions{})
 	req, _ = http.NewRequest("POST", "/api/protected_entity", bytes.NewReader([]byte(jsonEntity)))
 	req.Header.Add("Authorization", "1")
 	r.ServeHTTP(w, req)

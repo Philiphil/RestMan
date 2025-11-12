@@ -1,14 +1,13 @@
 package router_test
 
 import (
+	"context"
 	"slices"
 	"strings"
 	"testing"
 
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/gin-gonic/gin"
 
 	"maps"
 
@@ -40,8 +39,8 @@ func TestApiRouter_Options(t *testing.T) {
 		route.DefaultApiRoutes(),
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Head(context)
+	// Removed direct Head handler invocation; rely on HTTP requests only
+	ctx := context.Background()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("HEAD", "/api/test/1", nil)
@@ -53,7 +52,7 @@ func TestApiRouter_Options(t *testing.T) {
 	}
 
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(ctx, &entity)
 
 	req, _ = http.NewRequest("OPTIONS", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
@@ -85,8 +84,8 @@ func TestApiRouter_Options_Batch(t *testing.T) {
 		allRoutes,
 	)
 	test_.AllowRoutes(r)
-	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	test_.Head(context)
+	// Removed direct Head handler invocation; rely on HTTP requests only
+	ctx := context.Background()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("HEAD", "/api/test/1", nil)
 	req.Header.Set("Accept", "application/json")
@@ -95,7 +94,7 @@ func TestApiRouter_Options_Batch(t *testing.T) {
 		t.Error("should be not found")
 	}
 	entity := Test{entity.BaseEntity{Id: 1}}
-	repo.Create(&entity)
+	repo.Create(ctx, &entity)
 	req, _ = http.NewRequest("OPTIONS", "/api/test/1", nil)
 	r.ServeHTTP(w, req)
 	allowed := strings.Split(w.Header().Get("Allow"), ",")

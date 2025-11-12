@@ -2,6 +2,7 @@ package router_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -34,9 +35,9 @@ func TestApiRouter_BatchPost(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
-	jsonEntity, _ := serializer.Serialize(list)
+	jsonEntity, _ := s.Serialize(list, serializer.SerializeOptions{})
 	req, _ := http.NewRequest("POST", "/api/test", bytes.NewReader([]byte(jsonEntity)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
@@ -46,12 +47,12 @@ func TestApiRouter_BatchPost(t *testing.T) {
 		t.Error("Failed to create")
 	}
 	list = list[:0]
-	serializer.Deserialize(w.Body.String(), &list)
+	s.Deserialize(w.Body.String(), &list)
 	if len(list) != 2 {
 		fmt.Println(w.Body.String())
 		t.Error("Failed to create")
 	}
-	if object, err := repo.GetByID(2); object == nil || err != nil {
+	if object, err := repo.GetByID(context.Background(), 2); object == nil || err != nil {
 		t.Error("Failed to create")
 	}
 
@@ -85,9 +86,9 @@ func BenchmarkApiRouter_BatchPost(b *testing.B) {
 	}
 	w := httptest.NewRecorder()
 
-	serializer := serializer.NewSerializer(format.JSON)
+	s := serializer.NewSerializer(format.JSON)
 
-	jsonEntity, _ := serializer.Serialize(list)
+	jsonEntity, _ := s.Serialize(list, serializer.SerializeOptions{})
 	req, _ := http.NewRequest("POST", "/api/test", bytes.NewReader([]byte(jsonEntity)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
@@ -96,7 +97,7 @@ func BenchmarkApiRouter_BatchPost(b *testing.B) {
 	if w.Code != http.StatusCreated {
 		b.Error("Failed to create")
 	}
-	if objects, err := repo.GetAll(map[string]string{"id": "asc"}); len(objects) != 100000 || err != nil {
+	if objects, err := repo.GetAll(context.Background(), map[string]string{"id": "asc"}); len(objects) != 100000 || err != nil {
 		b.Error("Failed to create")
 	}
 

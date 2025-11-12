@@ -28,7 +28,7 @@ import (
 type SerialProduct struct {
 	entity.BaseEntity
 	Name        string  `json:"name" groups:"read,write"`
-	Price       float64 `json:"price" groups:"write"`
+	Price       float64 `json:"price" groups:"write"`              //should be writable but not readable
 	InternalSKU string  `json:"internal_sku" groups:"read"`        //should be never editable
 	CostPrice   float64 `json:"cost_price" groups:"private_stuff"` //should be never visible via api
 }

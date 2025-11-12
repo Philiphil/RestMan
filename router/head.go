@@ -11,26 +11,28 @@ import (
 
 // Head handles HTTP HEAD requests to retrieve entity metadata without the response body.
 func (r *ApiRouter[T]) Head(c *gin.Context) {
-	object, err := r.Orm.GetByID(c.Param("id"))
+	object, err := r.Orm.GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrNotFound.Code, errors.ErrNotFound.Message)
+		abortWithApiError(c, errors.ErrNotFound)
 		return
 	}
 	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
 	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
 	s := serializer.NewSerializer(responseFormat)
 
 	groups, err := r.GetEffectiveOutputSerializationGroups(c, route.Get)
 	if err != nil {
-		c.AbortWithStatusJSON(err.(errors.ApiError).Code, err.(errors.ApiError).Message)
+		abortWithError(c, err)
 		return
 	}
-	str, err := s.Serialize(object, groups...)
+	str, err := s.Serialize(object, serializer.SerializeOptions{
+		Groups: groups,
+	})
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		abortWithApiError(c, errors.ErrInternal)
 		return
 	}
 	c.Header("Content-Type", string(responseFormat))

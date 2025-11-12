@@ -6,9 +6,10 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/philiphil/restman/orm/entity"
-	"github.com/philiphil/restman/orm/mongorepository"
+	. "github.com/philiphil/restman/orm/mongorepository"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -76,9 +77,16 @@ func getCollection() *mongo.Collection {
 	}
 
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	client, err := mongo.Connect(context.Background(), clientOptions)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if err := client.Ping(ctx, nil); err != nil {
+		log.Fatal("MongoDB not available: ", err)
 	}
 
 	testClient = client
@@ -101,7 +109,7 @@ func TestMain(m *testing.M) {
 func TestMongoRepository_Insert(t *testing.T) {
 	collection := getCollection()
 	collection.Drop(context.Background())
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	product := Product{
@@ -140,7 +148,7 @@ func TestMongoRepository_Insert(t *testing.T) {
 
 func TestMongoRepository_FindByID(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	product, err := repository.FindByID(ctx, 8)
@@ -154,9 +162,9 @@ func TestMongoRepository_FindByID(t *testing.T) {
 
 func TestMongoRepository_Count(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 
-	nb, err := repository.Count()
+	nb, err := repository.Count(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
@@ -165,9 +173,9 @@ func TestMongoRepository_Count(t *testing.T) {
 	}
 }
 
-func TestMongoRepository_Update(t *testing.T) {
+func TestMongoRepository_Upsert(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	product, err := repository.FindByID(ctx, 8)
@@ -191,7 +199,7 @@ func TestMongoRepository_Update(t *testing.T) {
 
 func TestMongoRepository_DeleteByID(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	err := repository.DeleteByID(ctx, 8)
@@ -208,7 +216,7 @@ func TestMongoRepository_DeleteByID(t *testing.T) {
 func TestMongoRepository_Find(t *testing.T) {
 	collection := getCollection()
 	collection.Drop(context.Background())
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	product := Product{
@@ -227,7 +235,7 @@ func TestMongoRepository_Find(t *testing.T) {
 	}
 	repository.Insert(ctx, &product2)
 
-	many, err := repository.Find(ctx, mongorepository.GreaterOrEqual("weight", 50))
+	many, err := repository.Find(ctx, GreaterOrEqual("weight", 50))
 	if err != nil {
 		t.Error(err)
 	}
@@ -244,7 +252,7 @@ func TestMongoRepository_Find(t *testing.T) {
 		Qtt:         &i,
 	})
 
-	many, err = repository.Find(ctx, mongorepository.GreaterOrEqual("weight", 90))
+	many, err = repository.Find(ctx, GreaterOrEqual("weight", 90))
 	if err != nil {
 		t.Error(err)
 	}
@@ -252,9 +260,9 @@ func TestMongoRepository_Find(t *testing.T) {
 		t.Errorf("expected 2, got %d", len(many))
 	}
 
-	many, err = repository.Find(ctx, mongorepository.And(
-		mongorepository.GreaterOrEqual("weight", 90),
-		mongorepository.Equal("is_available", true)),
+	many, err = repository.Find(ctx, And(
+		GreaterOrEqual("weight", 90),
+		Equal("is_available", true)),
 	)
 	if err != nil {
 		t.Error(err)
@@ -266,7 +274,7 @@ func TestMongoRepository_Find(t *testing.T) {
 
 func TestMongoRepository_NewInstanceEntity(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 
 	entity := Product{}
 	if repository.NewEntity() != entity {
@@ -276,7 +284,7 @@ func TestMongoRepository_NewInstanceEntity(t *testing.T) {
 
 func TestMongoRepository_Delete(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	product := Product{
@@ -290,7 +298,7 @@ func TestMongoRepository_Delete(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = repository.Delete([]*Product{&product})
+	err = repository.Delete(ctx, []*Product{&product})
 	if err != nil {
 		t.Error(err)
 	}
@@ -298,7 +306,7 @@ func TestMongoRepository_Delete(t *testing.T) {
 
 func TestMongoRepository_FindAll(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	many, err := repository.FindAll(ctx)
@@ -312,7 +320,7 @@ func TestMongoRepository_FindAll(t *testing.T) {
 
 func TestMongoRepository_GetCollection(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	if repository.GetCollection() != collection {
 		t.Error("should be equal")
 	}
@@ -320,12 +328,12 @@ func TestMongoRepository_GetCollection(t *testing.T) {
 
 func TestMongoRepository_Conditions(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
-	many, err := repository.Find(ctx, mongorepository.And(
-		mongorepository.GreaterThan("weight", 100),
-		mongorepository.Equal("is_available", false)),
+	many, err := repository.Find(ctx, And(
+		GreaterThan("weight", 100),
+		Equal("is_available", false)),
 	)
 	if err != nil {
 		t.Error(err)
@@ -335,7 +343,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.Not(mongorepository.Equal("is_available", true)),
+		Not(Equal("is_available", true)),
 	)
 	if err != nil {
 		t.Error(err)
@@ -345,7 +353,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.LessThan("weight", 51),
+		LessThan("weight", 51),
 	)
 	if err != nil {
 		t.Error(err)
@@ -355,7 +363,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.LessOrEqual("weight", 50),
+		LessOrEqual("weight", 50),
 	)
 	if err != nil {
 		t.Error(err)
@@ -365,7 +373,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.In("weight", []uint{50, 100}),
+		In("weight", []uint{50, 100}),
 	)
 	if err != nil {
 		t.Error(err)
@@ -375,9 +383,9 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.Or(
-			mongorepository.Equal("weight", 50),
-			mongorepository.Equal("weight", 100),
+		Or(
+			Equal("weight", 50),
+			Equal("weight", 100),
 		),
 	)
 	if err != nil {
@@ -388,7 +396,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.IsNull("qtt"),
+		IsNull("qtt"),
 	)
 	if err != nil {
 		t.Error(err)
@@ -398,7 +406,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.IsNotNull("qtt"),
+		IsNotNull("qtt"),
 	)
 	if err != nil {
 		t.Error(err)
@@ -408,7 +416,7 @@ func TestMongoRepository_Conditions(t *testing.T) {
 	}
 
 	many, err = repository.Find(ctx,
-		mongorepository.Not(mongorepository.IsNull("qtt")),
+		Not(IsNull("qtt")),
 	)
 	if err != nil {
 		t.Error(err)
@@ -420,10 +428,10 @@ func TestMongoRepository_Conditions(t *testing.T) {
 
 func TestMongoRepository_Order(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
-	many, err := repository.FindAll(ctx, mongorepository.OrderBy("weight", "DESC"))
+	many, err := repository.FindAll(ctx, OrderBy("weight", "DESC"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -438,7 +446,7 @@ func TestMongoRepository_Order(t *testing.T) {
 
 func TestMongoRepository_BatchInsert(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	products := []*Product{
@@ -463,7 +471,7 @@ func TestMongoRepository_BatchInsert(t *testing.T) {
 
 func TestMongoRepository_BatchUpdate(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	products := []*Product{
@@ -488,7 +496,7 @@ func TestMongoRepository_BatchUpdate(t *testing.T) {
 
 func TestMongoRepository_BatchDelete(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	products := []*Product{
@@ -513,7 +521,7 @@ func TestMongoRepository_BatchDelete(t *testing.T) {
 
 func TestMongoRepository_FindByIDs(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
 	ids := []entity.ID{1, 2, 3}
@@ -528,10 +536,10 @@ func TestMongoRepository_FindByIDs(t *testing.T) {
 
 func TestMongoRepository_Like(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
-	many, err := repository.Find(ctx, mongorepository.Like("name", "product[12]"))
+	many, err := repository.Find(ctx, Like("name", "product[12]"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -542,14 +550,126 @@ func TestMongoRepository_Like(t *testing.T) {
 
 func TestMongoRepository_Ilike(t *testing.T) {
 	collection := getCollection()
-	repository := mongorepository.NewRepository[ProductMongo, Product](collection)
+	repository := NewRepository[ProductMongo, Product](collection)
 	ctx := context.Background()
 
-	many, err := repository.Find(ctx, mongorepository.Ilike("name", "PRODUCT[12]"))
+	many, err := repository.Find(ctx, Ilike("name", "PRODUCT[12]"))
 	if err != nil {
 		t.Error(err)
 	}
 	if len(many) < 2 {
 		t.Errorf("expected at least 2, got %d", len(many))
+	}
+}
+
+func TestMongoRepository_Create(t *testing.T) {
+	collection := getCollection()
+	collection.Drop(context.Background())
+	repo := NewRepository[ProductMongo, Product](collection)
+	ctx := context.Background()
+
+	product := Product{ID: 1, Name: "p1", Weight: 10, IsAvailable: true}
+	if err := repo.Create(ctx, []*Product{&product}); err != nil {
+		t.Fatalf("Failed to create entity: %v", err)
+	}
+
+	retrieved, err := repo.FindByID(ctx, 1)
+	if err != nil {
+		t.Fatalf("Failed to retrieve entity: %v", err)
+	}
+	if retrieved.GetId() != product.GetId() {
+		t.Fatalf("Retrieved entity ID %d does not match created entity ID %d", retrieved.GetId(), product.GetId())
+	}
+}
+
+func TestMongoRepository_Read(t *testing.T) {
+	collection := getCollection()
+	collection.Drop(context.Background())
+	repo := NewRepository[ProductMongo, Product](collection)
+	ctx := context.Background()
+
+	p1 := Product{ID: 3, Name: "p3", Weight: 30, IsAvailable: true}
+	p2 := Product{ID: 4, Name: "p4", Weight: 40, IsAvailable: true}
+	if err := repo.Create(ctx, []*Product{&p1, &p2}); err != nil {
+		t.Fatalf("Failed to create entities: %v", err)
+	}
+
+	products, err := repo.Read(ctx, []entity.ID{3, 4})
+	if err != nil {
+		t.Fatalf("Failed to read entities: %v", err)
+	}
+	if len(products) != 2 {
+		t.Fatalf("Expected to read 2 entities, got %d", len(products))
+	}
+}
+
+func TestMongoRepository_List(t *testing.T) {
+	collection := getCollection()
+	collection.Drop(context.Background())
+	repo := NewRepository[ProductMongo, Product](collection)
+	ctx := context.Background()
+
+	productsToCreate := []*Product{
+		{ID: 6, Name: "p6", Weight: 60, IsAvailable: true},
+		{ID: 7, Name: "p7", Weight: 70, IsAvailable: true},
+		{ID: 8, Name: "p8", Weight: 80, IsAvailable: true},
+	}
+	if err := repo.Create(ctx, productsToCreate); err != nil {
+		t.Fatalf("Failed to create entities: %v", err)
+	}
+
+	products, err := repo.List(ctx, 10, 0, nil)
+	if err != nil {
+		t.Fatalf("Failed to list entities: %v", err)
+	}
+	if len(products) != 3 {
+		t.Fatalf("Expected to list 3 entities, got %d", len(products))
+	}
+}
+func TestMongoRepository_CountWithSpecifications(t *testing.T) {
+	collection := getCollection()
+	collection.Drop(context.Background())
+	repo := NewRepository[ProductMongo, Product](collection)
+	ctx := context.Background()
+
+	productsToCreate := []*Product{
+		{ID: 12, Name: "p12", Weight: 120, IsAvailable: true},
+		{ID: 13, Name: "p13", Weight: 130, IsAvailable: false},
+		{ID: 14, Name: "p14", Weight: 140, IsAvailable: true},
+	}
+	if err := repo.Create(ctx, productsToCreate); err != nil {
+		t.Fatalf("Failed to create entities: %v", err)
+	}
+
+	count, err := repo.CountWithSpecifications(ctx, Equal("is_available", true))
+	if err != nil {
+		t.Fatalf("Failed to count entities: %v", err)
+	}
+	if count != 2 {
+		t.Fatalf("Expected to count 2 entities, got %d", count)
+	}
+}
+func TestMongoRepository_Update(t *testing.T) {
+	collection := getCollection()
+	collection.Drop(context.Background())
+	repo := NewRepository[ProductMongo, Product](collection)
+	ctx := context.Background()
+
+	product := Product{ID: 20, Name: "p20", Weight: 200, IsAvailable: true}
+	if err := repo.Create(ctx, []*Product{&product}); err != nil {
+		t.Fatalf("Failed to create entity: %v", err)
+	}
+
+	product.Name = "p20_updated"
+	if err := repo.Update(ctx, []*Product{&product}); err != nil {
+		t.Fatalf("Failed to update entity: %v", err)
+	}
+
+	updatedProduct, err := repo.FindByID(ctx, 20)
+	if err != nil {
+		t.Fatalf("Failed to retrieve updated entity: %v", err)
+	}
+	if updatedProduct.Name != "p20_updated" {
+		t.Fatalf("Expected updated entity name to be 'p20_updated', got '%s'", updatedProduct.Name)
 	}
 }

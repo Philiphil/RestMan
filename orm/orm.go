@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"context"
+
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/orm/entity"
 )
@@ -20,13 +22,13 @@ func NewORM[T entity.Entity](repo RestRepository[entity.DatabaseModel[T], T]) *O
 }
 
 // GetAll retrieves all entities from the repository with optional sorting.
-func (r *ORM[T]) GetAll(sort map[string]string) ([]T, error) {
-	return r.Repo.List(-1, -1, sort)
+func (r *ORM[T]) GetAll(ctx context.Context, sort map[string]string) ([]T, error) {
+	return r.Repo.List(ctx, -1, -1, sort)
 }
 
 // GetByID retrieves a single entity by its ID.
-func (r *ORM[T]) GetByID(id any) (*T, error) {
-	elem, err := r.Repo.Read([]entity.ID{entity.CastId(id)})
+func (r *ORM[T]) GetByID(ctx context.Context, id any) (*T, error) {
+	elem, err := r.Repo.Read(ctx, []entity.ID{entity.CastId(id)})
 
 	if err != nil {
 		return nil, err
@@ -38,33 +40,33 @@ func (r *ORM[T]) GetByID(id any) (*T, error) {
 }
 
 // GetPaginatedList retrieves a paginated list of entities with optional sorting.
-func (r *ORM[T]) GetPaginatedList(itemPerPage int, page int, sort map[string]string) ([]T, error) {
-	return r.Repo.List(itemPerPage, itemPerPage*page, sort)
+func (r *ORM[T]) GetPaginatedList(ctx context.Context, itemPerPage int, page int, sort map[string]string) ([]T, error) {
+	return r.Repo.List(ctx, itemPerPage, itemPerPage*page, sort)
 }
 
 // Count returns the total number of entities in the repository.
-func (r *ORM[T]) Count() (int64, error) {
-	return r.Repo.Count()
+func (r *ORM[T]) Count(ctx context.Context) (int64, error) {
+	return r.Repo.Count(ctx)
 }
 
 // Create persists one or more new entities to the repository.
-func (r *ORM[T]) Create(item ...*T) error {
-	return r.Repo.Create(item)
+func (r *ORM[T]) Create(ctx context.Context, item ...*T) error {
+	return r.Repo.Create(ctx, item)
 }
 
 // Update modifies one or more existing entities in the repository.
-func (r *ORM[T]) Update(item ...*T) error {
-	return r.Repo.Update(item)
+func (r *ORM[T]) Update(ctx context.Context, item ...*T) error {
+	return r.Repo.Update(ctx, item)
 }
 
 // Delete removes one or more entities from the repository.
-func (r *ORM[T]) Delete(item ...*T) error {
-	return r.Repo.Delete(item)
+func (r *ORM[T]) Delete(ctx context.Context, item ...*T) error {
+	return r.Repo.Delete(ctx, item)
 }
 
 // FindByIDs retrieves multiple entities by their IDs, returning an error if not all are found.
-func (r *ORM[T]) FindByIDs(ids []entity.ID) ([]*T, error) {
-	list, err := r.Repo.Read(ids)
+func (r *ORM[T]) FindByIDs(ctx context.Context, ids []entity.ID) ([]*T, error) {
+	list, err := r.Repo.Read(ctx, ids)
 	if err != nil {
 		return nil, err
 	}

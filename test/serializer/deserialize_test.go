@@ -50,7 +50,7 @@ var testDeserializedResult = Test{
 // basic struct
 func TestSerializer_Deserialize(t *testing.T) {
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,7 +74,7 @@ func TestSerializer_Deserialize2(t *testing.T) {
 	}
 
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -103,7 +103,7 @@ func TestSerializer_Deserialize3(t *testing.T) {
 		},
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -127,7 +127,7 @@ func TestSerializer_Deserialize4(t *testing.T) {
 	expected1.Test1 = 0
 
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test1, "test")
+	serialized, err := s.Serialize(test1, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -154,7 +154,7 @@ func TestSerializer_Deserialize5(t *testing.T) {
 		},
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -184,7 +184,7 @@ func TestSerializer_Deserialize6(t *testing.T) {
 		},
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,7 +213,7 @@ func TestSerializer_Deserialize7(t *testing.T) {
 		},
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -247,7 +247,7 @@ func TestSerializer_Deserialize8(t *testing.T) {
 	}
 
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -266,7 +266,7 @@ func TestSerializer_Deserialize9(t *testing.T) {
 	test1 := make(map[string]any)
 	test1["test"] = test
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test1, "test")
+	serialized, err := s.Serialize(test1, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -284,7 +284,7 @@ func TestSerializer_Deserialize11(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	tt := Test2{test}
 	rr := Test2{testDeserializedResult}
-	serialized, err := s.Serialize(tt, "test")
+	serialized, err := s.Serialize(tt, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -304,7 +304,7 @@ func TestSerializer_Deserialize12(t *testing.T) {
 	s := NewSerializer(format.JSON)
 	tt := Test2{test}
 	rr := Test2{testDeserializedResult}
-	serialized, err := s.Serialize(&tt, "test")
+	serialized, err := s.Serialize(&tt, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -322,7 +322,7 @@ func TestSerializer_Deserialize12(t *testing.T) {
 // slice
 func TestSerializer_Deserialize13(t *testing.T) {
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize([]Test{test}, "test")
+	serialized, err := s.Serialize([]Test{test}, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -338,7 +338,7 @@ func TestSerializer_Deserialize13(t *testing.T) {
 // try to deserialize primitive type
 func TestSerializer_Deserialize14(t *testing.T) {
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(1, "test")
+	serialized, err := s.Serialize(1, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -348,7 +348,7 @@ func TestSerializer_Deserialize14(t *testing.T) {
 		t.Error("!")
 	}
 	//now string
-	serialized, err = s.Serialize("test", "test")
+	serialized, err = s.Serialize("test", SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -358,7 +358,7 @@ func TestSerializer_Deserialize14(t *testing.T) {
 		t.Error("!")
 	}
 	//now bool
-	serialized, err = s.Serialize(true, "test")
+	serialized, err = s.Serialize(true, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -368,7 +368,7 @@ func TestSerializer_Deserialize14(t *testing.T) {
 		t.Error("!")
 	}
 	//now float
-	serialized, err = s.Serialize(1.1, "test")
+	serialized, err = s.Serialize(1.1, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -378,7 +378,7 @@ func TestSerializer_Deserialize14(t *testing.T) {
 		t.Error("!")
 	}
 	// now int64
-	serialized, err = s.Serialize(int64(9223372036854775806), "test")
+	serialized, err = s.Serialize(int64(9223372036854775806), SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -388,7 +388,7 @@ func TestSerializer_Deserialize14(t *testing.T) {
 		t.Error("!")
 	}
 	// now Rune
-	serialized, err = s.Serialize('a', "test")
+	serialized, err = s.Serialize('a', SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -407,7 +407,7 @@ func TestSerializer_MergeObjects(t *testing.T) {
 		9, 11, 7, 6, 11, 11, 3,
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -446,7 +446,7 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 		9, 11, 7, 6, 11, 11, 3,
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -465,7 +465,7 @@ func TestSerializer_DeserializeAndMerge(t *testing.T) {
 // target object should be a pointer
 func TestSerializer_DeserializeStruct(t *testing.T) {
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -480,7 +480,7 @@ func TestSerializer_DeserializeStruct(t *testing.T) {
 // jsonLd coverage
 func TestSerializer_SerializeJsonLD(t *testing.T) {
 	s := NewSerializer(format.JSONLD)
-	serialized, err := s.Serialize(test, "test")
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -495,7 +495,7 @@ func TestSerializer_SerializeJsonLD(t *testing.T) {
 // Undefined format coverage
 func TestSerializer_SerializeUndefined(t *testing.T) {
 	s := NewSerializer(format.Undefined)
-	_, err := s.Serialize(test, "test")
+	_, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err == nil {
 		t.Error("should not work")
 	}
@@ -503,9 +503,22 @@ func TestSerializer_SerializeUndefined(t *testing.T) {
 }
 
 // Unknown format coverage
+func TestSerializer_DeserializeMessagePack(t *testing.T) {
+	s := NewSerializer(format.MESSAGEPACK)
+	serialized, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
+	if err != nil {
+		t.Error(err)
+	}
+	o := Test{}
+	err = s.Deserialize(serialized, &o)
+	if o != testDeserializedResult || err != nil {
+		t.Error("!")
+	}
+}
+
 func TestSerializer_SerializeUnknown(t *testing.T) {
 	s := NewSerializer(format.Unknown)
-	_, err := s.Serialize(test, "test")
+	_, err := s.Serialize(test, SerializeOptions{Groups: []string{"test"}})
 	if err == nil {
 		t.Error(err)
 	}
@@ -521,7 +534,7 @@ func BenchmarkSerializer_Deserialize(b *testing.B) {
 		})
 	}
 	s := NewSerializer(format.JSON)
-	serialized, err := s.Serialize(test2, "test")
+	serialized, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 	if err != nil {
 		b.Error(err)
 	}
@@ -542,7 +555,7 @@ func BenchmarkSerializer_Serialize(b *testing.B) {
 	}
 	s := NewSerializer(format.JSON)
 	for i := 0; i < b.N; i++ {
-		_, err := s.Serialize(test2, "test")
+		_, err := s.Serialize(test2, SerializeOptions{Groups: []string{"test"}})
 		if err != nil {
 			b.Error(err)
 		}
