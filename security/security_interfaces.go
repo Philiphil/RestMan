@@ -20,6 +20,6 @@ func HasReadingRights(obj any) (ReadingRights, bool) {
 
 // HasWritingRights checks if the object implements the WritingRights interface.
 func HasWritingRights(obj any) (WritingRights, bool) {
-	rr, ok := obj.(WritingRights)
-	return rr, ok
+	wr, ok := obj.(WritingRights)
+	return wr, ok
 }

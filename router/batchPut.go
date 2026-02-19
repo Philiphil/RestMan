@@ -10,15 +10,22 @@ import (
 // BatchPut handles PUT requests for multiple entities, fully replacing existing entities.
 func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	var entities []*T
-	if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {
-		//unserializable
-		abortWithApiError(c, errors.ErrBadFormat)
-		return
-	} else if len(entities) == 0 {
-		//empty body
-		abortWithApiError(c, errors.ErrBadFormat)
+
+	batchLimit, err := r.GetBatchLimit(c, route.BatchPut)
+	if err != nil {
+		abortWithApiError(c, errors.Internal)
 		return
 	}
+
+	if err := UnserializeBodyAndMerge_A(c, &entities); err != nil {
+		//unserializable
+		abortWithApiError(c, errors.BadFormat)
+		return
+	} else if len(entities) == 0 || len(entities) > batchLimit {
+		abortWithApiError(c, errors.BadRequest)
+		return
+	}
+
 	//I must check the id's first
 	//All of them must have an id and if it's already in use, I must check write permissions
 
@@ -26,7 +33,7 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	for i, e := range entities {
 		id := (*e).GetId()
 		if id == entity.NullId {
-			abortWithApiError(c, errors.ErrBadFormat)
+			abortWithApiError(c, errors.BadFormat)
 			return
 		}
 		ids[i] = id
@@ -36,7 +43,7 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	if err != nil {
 		//check only for database issue, non existing entities are not a problem
 		if err != errors.NotAllItemFound {
-			abortWithApiError(c, errors.ErrDatabaseIssue)
+			abortWithApiError(c, errors.DatabaseIssue)
 			return
 		}
 	}
@@ -51,7 +58,7 @@ func (r *ApiRouter[T]) BatchPut(c *gin.Context) {
 	}
 
 	if err := r.Orm.Update(c.Request.Context(), entities...); err != nil {
-		abortWithApiError(c, errors.ErrDatabaseIssue)
+		abortWithApiError(c, errors.DatabaseIssue)
 		return
 	}
 

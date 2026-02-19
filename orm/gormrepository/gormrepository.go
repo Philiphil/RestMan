@@ -50,7 +50,7 @@ func (r *GormRepository[M, E]) SetPreloadAssociations(association bool) *GormRep
 
 func (r *GormRepository[M, E]) setAssociations(model *M) *GormRepository[M, E] {
 	sc, _ := schema.Parse(model, &sync.Map{}, r.db.NamingStrategy)
-	for _, i := range sc.Relationships.Many2Many {
+	for _, i := range sc.Relationships.Relations {
 		r.associations = append(r.associations, i.Name)
 	}
 	r.assocationsLoaded = true

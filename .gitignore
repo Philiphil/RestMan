@@ -39,3 +39,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+analys.md
+profile.cov
+local/

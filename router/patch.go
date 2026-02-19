@@ -13,7 +13,7 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 	id := c.Param("id")
 	obj, err := r.Orm.GetByID(c.Request.Context(), id)
 	if err != nil {
-		abortWithApiError(c, errors.ErrNotFound)
+		abortWithApiError(c, errors.NotFound)
 		return
 	}
 
@@ -24,7 +24,7 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 
 	groups, errGroups := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Patch)
 	if errGroups != nil {
-		abortWithApiError(c, errors.ErrInternal)
+		abortWithApiError(c, errors.Internal)
 		return
 	}
 
@@ -37,12 +37,12 @@ func (r *ApiRouter[T]) Patch(c *gin.Context) {
 	cast = cast.SetId(id)
 	convertedEntity, ok := cast.(T)
 	if !ok {
-		abortWithApiError(c, errors.ErrInternal)
+		abortWithApiError(c, errors.Internal)
 		return
 	}
 	err = r.Orm.Update(c.Request.Context(), &convertedEntity)
 	if err != nil {
-		abortWithApiError(c, errors.ErrDatabaseIssue)
+		abortWithApiError(c, errors.DatabaseIssue)
 		return
 	}
 

@@ -56,7 +56,7 @@ type TestFirewall struct {
 func (f TestFirewall) GetUser(c *gin.Context) (security.User, error) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.Unauthorized
 	}
 	id := entity.CastId(token)
 	return TestUser{}.SetId(id), nil
@@ -113,7 +113,7 @@ func TestMain_FireWall(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/protected_entity/1", nil)
 	req.Header.Add("Authorization", "0")
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
+	if w.Code != http.StatusUnauthorized {
 		t.Error("Should return 401")
 	}
 

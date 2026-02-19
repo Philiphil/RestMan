@@ -1,11 +1,17 @@
 package router_test
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/orm"
+	"github.com/philiphil/restman/orm/entity"
+	"github.com/philiphil/restman/orm/gormrepository"
+	"github.com/philiphil/restman/route"
 	. "github.com/philiphil/restman/router"
 )
 
@@ -15,15 +21,15 @@ func TestParseDotNotationFields_Simple(t *testing.T) {
 		ResourceFields: make(map[string][]string),
 	}
 
-	router.ParseDotNotationFields("id,name,email", request)
+	router.ParseDotNotationFields("Name,Email", request)
 
 	// Check root fields
 	rootFields := request.ResourceFields[""]
-	if len(rootFields) != 3 {
-		t.Errorf("Expected 3 root fields, got %d", len(rootFields))
+	if len(rootFields) != 2 {
+		t.Errorf("Expected 2 root fields, got %d", len(rootFields))
 	}
 
-	expected := []string{"id", "name", "email"}
+	expected := []string{"Name", "Email"}
 	for _, exp := range expected {
 		found := false
 		for _, field := range rootFields {
@@ -255,4 +261,45 @@ func TestParseDotNotationFields_DuplicateFields(t *testing.T) {
 	if len(postsFields) != 2 { // title appears twice
 		t.Errorf("Expected 2 posts fields, got %d", len(postsFields))
 	}
+}
+
+func TestParseDotNotationFields_SubResourceNotIncluded(t *testing.T) {
+	orrrm := gormrepository.NewRepository[Resource](getDB())
+	orrrmm := gormrepository.NewRepository[SubResource](getDB())
+	_ = orrrmm
+	resourceRouter := NewApiRouter(
+		*orm.NewORM(orrrm),
+		route.DefaultApiRoutes(),
+	)
+	getDB().AutoMigrate(&Resource{})
+	getDB().AutoMigrate(&SubResource{})
+
+	res1 := Resource{BaseEntity: entity.BaseEntity{Id: 1}}
+	subRes1 := SubResource{}
+	subRes1.Name = "Aju"
+	res1.Name = "Resource 1"
+	res1.HiddenField = "Hidden Value"
+	res1.SubResources = append(res1.SubResources, subRes1)
+	orrrm.Insert(context.Background(), &res1)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	resourceRouter.AllowRoutes(router)
+
+	w := httptest.NewRecorder()
+
+	// Simulate query params: ?fields=id,sub_resource,sub_resource.title
+	req, _ := http.NewRequest("GET", "/api/resource/1", nil)
+	//req, _ := http.NewRequest("GET", "/api/resource/1?fields=Id,Name,HiddenField,SubResources,SubResources.Title", nil)
+	router.ServeHTTP(w, req)
+
+	// display body
+	body := w.Body.String()
+	orrrm.EnablePreloadAssociations()
+	test, _ := orrrm.FindByID(req.Context(), 1)
+	fmt.Println("SubResource in DB:", test)
+	tt, _ := orrrmm.FindAll(context.Background())
+	fmt.Println("All SubResources in DB:", tt)
+	panic(body)
+
 }

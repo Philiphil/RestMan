@@ -8,7 +8,7 @@ import (
 )
 
 func TestError(t *testing.T) {
-	err := ErrNotFound
+	err := NotFound
 	if err.Error() != "not found" {
 		t.Error("Error() should return the message")
 	}

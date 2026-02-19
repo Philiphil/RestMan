@@ -8,12 +8,12 @@ import (
 
 // BaseEntity is a default implementation of Entity interface
 type BaseEntity struct {
-	Id          ID `json:"id" orm:"primaryKey"`
+	Id          ID `orm:"primaryKey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `orm:"index"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
+	Name        string
+	Description string
 }
 
 // GetId returns the entity's ID.

@@ -89,17 +89,22 @@ const (
 	// this will allow then to fallback to single entity route configuration
 	BatchRouteConfigurationDefaultToSingleRouteConfigurationType
 
+	IncludeEnabledType       // Will enable/disable inclusion of related entities
+	IncludeParameterNameType // Will set the query parameter name for inclusion of related entities
+
+	BatchLimitType // Will limit the number of items in batch operations ...
+
+	//still wip, they divulge hidden fields
+	SparseFieldsEnabledType       //  enable/disable sparse fieldsets
+	SparseFieldsParameterNameType //  set the query parameter name for sparse fieldsets
+
 	// Unimplemented configuration types - reserved for future use
-	BatchLimitType            // Will limit the number of items in batch operations ...
+
 	FormatEnabledType         // Will enable/disable specific format
 	DefaultFilteringType      // Will add default filters to queries
 	InMemoryCachingPolicyType // Will configure in-memory caching
 
-	IncludeEnabledType            // Will enable/disable inclusion of related entities
-	IncludeParameterNameType      // Will set the query parameter name for inclusion of related entities
-	IncludeMaxDepthType           // Will set the maximum depth for included related entities
-	SparseFieldsEnabledType       // Will enable/disable sparse fieldsets
-	SparseFieldsParameterNameType // Will set the query parameter name for sparse fieldsets
+	IncludeMaxDepthType // Will set the maximum depth for included related entities
 
 )
 
@@ -123,21 +128,21 @@ func (c Configuration) GetValueAsString() (string, error) {
 	if len(c.Values) > 0 {
 		return c.Values[0], nil
 	}
-	return "", errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	return "", errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 }
 
 func (c Configuration) GetValueAsBool() (bool, error) {
 	if len(c.Values) > 0 {
 		return strconv.ParseBool(c.Values[0])
 	}
-	return false, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	return false, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 }
 
 func (c Configuration) GetValueAsInt() (int, error) {
 	if len(c.Values) > 0 {
 		return strconv.Atoi(c.Values[0])
 	}
-	return 0, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	return 0, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 }
 
 // NetworkCachingPolicy sets the HTTP Cache-Control max-age header in seconds.
@@ -327,4 +332,16 @@ func SparseFieldsEnabled(enabled bool) Configuration {
 
 func SparseFieldsParameterName(name string) Configuration {
 	return Configuration{Type: SparseFieldsParameterNameType, Values: []string{name}}
+}
+
+func BatchLimit(limit int) Configuration {
+	return Configuration{Type: BatchLimitType, Values: []string{strconv.Itoa(limit)}}
+}
+
+func IncludeEnabled(enabled bool) Configuration {
+	return Configuration{Type: IncludeEnabledType, Values: []string{strconv.FormatBool(enabled)}}
+}
+
+func IncludeParameterName(name string) Configuration {
+	return Configuration{Type: IncludeParameterNameType, Values: []string{name}}
 }

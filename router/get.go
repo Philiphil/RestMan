@@ -1,16 +1,43 @@
 package router
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/gin-gonic/gin"
+	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
 	"github.com/philiphil/restman/route"
 )
+
+func (r *ApiRouter[T]) GetIncludedRelationships(c *gin.Context, routeType route.RouteType) (results []string) {
+	include, err := r.GetConfiguration(configuration.IncludeEnabledType, routeType)
+	if err != nil {
+		return results
+	}
+	includeBool, err := strconv.ParseBool(include.Values[0])
+	if err != nil || !includeBool {
+		return results
+	}
+	includeParameter, err := r.GetConfiguration(configuration.IncludeParameterNameType, routeType)
+	if err != nil {
+		return results
+	}
+	includeQuery := c.Query(includeParameter.Values[0])
+	if includeQuery == "" {
+		return results
+	}
+	results = strings.Split(includeQuery, ",")
+
+	return results
+}
 
 // Get handles HTTP GET requests to retrieve a single entity by ID.
 func (r *ApiRouter[T]) Get(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		abortWithApiError(c, errors.ErrNotFound)
+		abortWithApiError(c, errors.NotFound)
 		return
 	}
 
@@ -19,7 +46,7 @@ func (r *ApiRouter[T]) Get(c *gin.Context) {
 		abortWithError(c, err)
 		return
 	}
-
+	fmt.Printf("Retrieved object: %+v\n", object)
 	r.Render(c, 200, object, route.Get)
 
 }

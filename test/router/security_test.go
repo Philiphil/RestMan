@@ -83,11 +83,12 @@ type TestFirewall struct {
 func (f TestFirewall) GetUser(c *gin.Context) (security.User, error) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.Unauthorized
 	}
 	id := entity.CastId(token)
 	if id == 0 { // non blocking error
-		return TestUser{}.SetId(id), errors.ApiError{Code: http.StatusUnauthorized, Message: "unauthorized", Blocking: false}
+		// lets return a classic go error to test
+		return nil, errors.New("invalid token")
 	}
 	return TestUser{}.SetId(id), nil
 }

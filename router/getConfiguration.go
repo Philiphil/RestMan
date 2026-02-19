@@ -35,7 +35,7 @@ func (r *ApiRouter[T]) GetRouterWideConfiguration(configurationType configuratio
 	if !found {
 		// this should not happen, there should always be a router wide configuration
 		// it would mean that the router was not properly initialized
-		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 	}
 	return routerValue, nil
 }
@@ -55,13 +55,13 @@ func (r *ApiRouter[T]) _GetRouteWideConfiguration(configurationType configuratio
 	if !exists {
 		//we trying to get configuration for a route that does not exist
 		//should not happen
-		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 	}
 	routeValue, exists := routeConfig.Configuration[configurationType]
 	if exists {
 		return routeValue, nil
 	}
-	return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 }
 
 // if a given route-wide configuration is not found, there's case we want to fallback to another route-wide configuration
@@ -80,7 +80,7 @@ func (r *ApiRouter[T]) GetRouteWideConfigurationFallback(configurationType confi
 	}
 
 	if !slices.Contains(listOfFallbackableConfigurationType, configurationType) {
-		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 	}
 
 	batchToSingleConf, err := r.GetConfiguration(configuration.BatchRouteConfigurationDefaultToSingleRouteConfigurationType, routeType)
@@ -101,7 +101,7 @@ func (r *ApiRouter[T]) GetRouteWideConfigurationFallback(configurationType confi
 		return configuration.Configuration{}, err
 	}
 	if !batchToSingle && !writeToRead {
-		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 	}
 
 	// now we need to find a suitable fallback configuration depending on the routeType
@@ -161,10 +161,10 @@ func (r *ApiRouter[T]) GetRouteWideConfigurationFallback(configurationType confi
 		if writeToRead {
 			return r._GetRouteWideConfiguration(configurationType, route.Get)
 		}
-		return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+		return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 	}
 
-	return configuration.Configuration{}, errors.ApiError{Code: errors.ErrInternal.Code, Message: errors.ErrInternal.Message}
+	return configuration.Configuration{}, errors.ApiError{Code: errors.Internal.Code, Message: errors.Internal.Message}
 }
 
 func (r *ApiRouter[T]) IsOutputSerializationGroupOverwriteEnabled(c *gin.Context) (bool, error) {

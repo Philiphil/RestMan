@@ -6,6 +6,14 @@ import (
 	"github.com/philiphil/restman/configuration"
 )
 
+func List(methods ...RouteType) map[RouteType]Route {
+	routes := make(map[RouteType]Route)
+	for _, method := range methods {
+		routes[method] = NewRoute(method)
+	}
+	return routes
+}
+
 // NewRoute creates a new Route with the specified route type and optional configurations.
 func NewRoute(routeType RouteType, configurations ...configuration.Configuration) Route {
 	c := Route{}
@@ -18,16 +26,7 @@ func NewRoute(routeType RouteType, configurations ...configuration.Configuration
 
 // DefaultApiRoutes returns a map of default CRUD routes (Get, GetList, Post, Put, Patch, Delete, Head, Options) with empty configurations.
 func DefaultApiRoutes() map[RouteType]Route {
-	return map[RouteType]Route{
-		Get:     NewRoute(Get),
-		GetList: NewRoute(GetList),
-		Post:    NewRoute(Post),
-		Put:     NewRoute(Put),
-		Patch:   NewRoute(Patch),
-		Delete:  NewRoute(Delete),
-		Head:    NewRoute(Head),
-		Options: NewRoute(Options),
-	}
+	return List(Get, GetList, Post, Put, Patch, Delete, Head, Options)
 }
 
 // AllApiRoutes returns a map containing all default routes and batch operation routes.
@@ -39,11 +38,5 @@ func AllApiRoutes() map[RouteType]Route {
 
 // BatchOperations returns a map of batch operation routes (BatchDelete, BatchPut, BatchPatch, BatchPost, BatchGet).
 func BatchOperations() map[RouteType]Route {
-	return map[RouteType]Route{
-		BatchDelete: NewRoute(BatchDelete),
-		BatchPut:    NewRoute(BatchPut),
-		BatchPatch:  NewRoute(BatchPatch),
-		BatchPost:   NewRoute(BatchPost),
-		BatchGet:    NewRoute(BatchGet),
-	}
+	return List(BatchDelete, BatchPut, BatchPatch, BatchPost, BatchGet)
 }

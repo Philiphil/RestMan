@@ -10,7 +10,7 @@ func (r *ApiRouter[T]) Delete(c *gin.Context) {
 	id := c.Param("id")
 	object, err := r.Orm.GetByID(c.Request.Context(), id)
 	if err != nil {
-		abortWithApiError(c, errors.ErrNotFound)
+		abortWithApiError(c, errors.NotFound)
 		return
 	}
 	if err = r.WritingCheck(c, object); err != nil {
@@ -18,7 +18,7 @@ func (r *ApiRouter[T]) Delete(c *gin.Context) {
 		return
 	}
 	if err = r.Orm.Delete(c.Request.Context(), object); err != nil {
-		abortWithApiError(c, errors.ErrDatabaseIssue)
+		abortWithApiError(c, errors.DatabaseIssue)
 		return
 	}
 	c.Status(204)

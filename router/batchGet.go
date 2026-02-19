@@ -11,13 +11,23 @@ import (
 func (r *ApiRouter[T]) BatchGet(c *gin.Context) {
 	idsValues := r.GetIds(c)
 
+	batchLimit, err := r.GetBatchLimit(c, route.BatchGet)
+	if err != nil {
+		abortWithApiError(c, errors.Internal)
+		return
+	}
+	if len(idsValues) == 0 || len(idsValues) > batchLimit {
+		abortWithApiError(c, errors.BadRequest)
+		return
+	}
+
 	formatedId := make([]entity.ID, len(idsValues))
 	for i, v := range idsValues {
 		formatedId[i] = entity.CastId(v)
 	}
 	objects, err := r.Orm.FindByIDs(c.Request.Context(), formatedId)
 	if err != nil {
-		abortWithApiError(c, errors.ErrNotFound)
+		abortWithApiError(c, errors.NotFound)
 		return
 	}
 	for _, object := range objects {

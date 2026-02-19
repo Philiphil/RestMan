@@ -20,23 +20,33 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 
 	groups, err := r.GetConfiguration(configuration.InputSerializationGroupsType, route.Post)
 	if err != nil {
-		abortWithApiError(c, errors.ErrInternal)
+		abortWithApiError(c, errors.Internal)
 		return
 	}
 
 	if err := UnserializeBodyAndMerge(c, &entity, groups.Values...); err != nil {
-		//if unserializable, might be array
+		//Serialize as an entity failed, might be array
+		//is batch post allowed?
 		if _, ok := r.Routes[route.BatchPost]; ok {
 			if err := UnserializeBodyAndMerge_A(c, &entities, groups.Values...); err != nil {
 				//its still unserializable as an array
-				abortWithApiError(c, errors.ErrBadFormat)
+				abortWithApiError(c, errors.BadFormat)
 				return
 			} else {
 				single = false
+				batchLimit, err := r.GetBatchLimit(c, route.BatchPost)
+				if err != nil {
+					abortWithApiError(c, errors.Internal)
+					return
+				}
+				if len(entities) > batchLimit {
+					abortWithApiError(c, errors.BadRequest)
+					return
+				}
 			}
 		} else {
 			//batch is not allowed, so array or not it does not mater
-			abortWithApiError(c, errors.ErrBadFormat)
+			abortWithApiError(c, errors.BadFormat)
 			return
 		}
 	} else {
@@ -44,7 +54,7 @@ func (r *ApiRouter[T]) Post(c *gin.Context) {
 	}
 
 	if err := r.Orm.Create(c.Request.Context(), entities...); err != nil {
-		abortWithApiError(c, errors.ErrDatabaseIssue)
+		abortWithApiError(c, errors.DatabaseIssue)
 		return
 	}
 

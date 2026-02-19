@@ -12,12 +12,12 @@ func abortWithError(c *gin.Context, err error) {
 	if apiErr, ok := err.(errors.ApiError); ok {
 		c.AbortWithStatusJSON(apiErr.Code, apiErr.Message)
 	} else {
-		c.AbortWithStatusJSON(errors.ErrInternal.Code, errors.ErrInternal.Message)
+		c.AbortWithStatusJSON(errors.Internal.Code, errors.Internal.Message)
 	}
 }
 
 // abortWithApiError aborts the request with the given ApiError.
-// This is a convenience function for predefined errors like errors.ErrNotFound.
+// This is a convenience function for predefined errors like errors.NotFound.
 func abortWithApiError(c *gin.Context, apiErr errors.ApiError) {
 	c.AbortWithStatusJSON(apiErr.Code, apiErr.Message)
 }

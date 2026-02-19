@@ -30,5 +30,10 @@ func DefaultConfiguration() map[ConfigurationType]Configuration {
 		BatchRouteConfigurationDefaultToSingleRouteConfigurationType: BatchRouteConfigurationDefaultToSingleRouteConfiguration(true),
 		SparseFieldsEnabledType:                                      SparseFieldsEnabled(true),
 		SparseFieldsParameterNameType:                                SparseFieldsParameterName("fields"),
+
+		IncludeEnabledType:       IncludeEnabled(true),
+		IncludeParameterNameType: IncludeParameterName("include"),
+
+		BatchLimitType: BatchLimit(1000),
 	}
 }

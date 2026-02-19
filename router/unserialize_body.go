@@ -16,12 +16,12 @@ func UnserializeBodyAndMerge[T any](c *gin.Context, e *T, groups ...string) erro
 	bodyReader := bytes.NewReader(serializedData)
 	c.Request.Body = io.NopCloser(bodyReader)
 	if err != nil {
-		return errors.ErrBadFormat
+		return errors.BadFormat
 	}
 	serializer_ := serializer.NewSerializer(ParseTypeFromString(c.GetHeader("Content-type")))
 	err = serializer_.DeserializeAndMerge(string(serializedData), e, groups...)
 	if err != nil {
-		return errors.ErrBadFormat
+		return errors.BadFormat
 	}
 	return nil
 }
@@ -33,12 +33,12 @@ func UnserializeBodyAndMerge_A[T any](c *gin.Context, e *[]*T, groups ...string)
 	bodyReader := bytes.NewReader(serializedData)
 	c.Request.Body = io.NopCloser(bodyReader)
 	if err != nil {
-		return errors.ErrBadFormat
+		return errors.BadFormat
 	}
 	serializer_ := serializer.NewSerializer(ParseTypeFromString(c.GetHeader("Content-type")))
 	err = serializer_.DeserializeAndMerge(string(serializedData), &e, groups...)
 	if err != nil {
-		return errors.ErrBadFormat
+		return errors.BadFormat
 	}
 	return nil
 }

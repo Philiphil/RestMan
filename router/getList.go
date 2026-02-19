@@ -39,7 +39,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 
 	groups, err := r.GetEffectiveOutputSerializationGroups(c, route.GetList)
 	if err != nil {
-		abortWithApiError(c, errors.ErrInternal)
+		abortWithApiError(c, errors.Internal)
 		return
 	}
 
@@ -47,12 +47,12 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	if paginate {
 		objects, err = r.Orm.GetPaginatedList(c.Request.Context(), itemPerPage, page, sortOrder)
 		if err != nil {
-			abortWithApiError(c, errors.ErrDatabaseIssue)
+			abortWithApiError(c, errors.DatabaseIssue)
 			return
 		}
 		count, err := r.Orm.Count(c.Request.Context())
 		if err != nil {
-			abortWithApiError(c, errors.ErrDatabaseIssue)
+			abortWithApiError(c, errors.DatabaseIssue)
 			return
 		}
 
@@ -76,7 +76,7 @@ func (r *ApiRouter[T]) GetList(c *gin.Context) {
 	} else {
 		objects, err = r.Orm.GetAll(c.Request.Context(), sortOrder)
 		if err != nil {
-			abortWithApiError(c, errors.ErrDatabaseIssue)
+			abortWithApiError(c, errors.DatabaseIssue)
 			return
 		}
 	}

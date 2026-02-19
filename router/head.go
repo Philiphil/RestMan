@@ -13,7 +13,7 @@ import (
 func (r *ApiRouter[T]) Head(c *gin.Context) {
 	object, err := r.Orm.GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		abortWithApiError(c, errors.ErrNotFound)
+		abortWithApiError(c, errors.NotFound)
 		return
 	}
 	responseFormat, err := ParseAcceptHeader(c.GetHeader("Accept"))
@@ -32,7 +32,7 @@ func (r *ApiRouter[T]) Head(c *gin.Context) {
 		Groups: groups,
 	})
 	if err != nil {
-		abortWithApiError(c, errors.ErrInternal)
+		abortWithApiError(c, errors.Internal)
 		return
 	}
 	c.Header("Content-Type", string(responseFormat))

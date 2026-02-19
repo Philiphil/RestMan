@@ -287,12 +287,13 @@ type MyFirewall struct{}
 func (f MyFirewall) ExtractUser(c *gin.Context) (any, *errors.ApiError) {
     token := c.GetHeader("Authorization")
     if token == "" {
-        return nil, errors.NewBlockingError(errors.ErrUnauthorized, "Missing token")
+        //Non blocking errors allow firewall chaining
+        return nil, errors.FirewallNonBlocking("Missing token")
     }
 
-    user := validateToken(token) // Your validation logic
+    user := validateToken(token) // Your validation logic, not t
     if user == nil {
-        return nil, errors.NewBlockingError(errors.ErrUnauthorized, "Invalid token")
+        return nil, errors.FirewallBlocking("Invalid token")
     }
 
     return user, nil
@@ -443,15 +444,17 @@ go test ./test/router/...
 ## Roadmap
 
 ### TODO/ IDEAS
-- [ ] sparse fields
 - [ ] ?include relationship
 - [ ] Test refactor
-- [ ] Filtering implementation
+- [ ] some filtering implementation
 - [ ] Finishing redis implementation
 - [ ] UUID compatibility for entity.ID
 - [ ] Force lowercase option for JSON keys
 - [ ] Proper jsonLD/hydra
 - [ ] json:api
+- [ ] standard json output
+- [ ] custom route
+- [ ] router framework agnostic ?
 - [ ] Hooks system for lifecycle events
 - [ ] Built-in `requireOwnership` for firewall or something
 - [ ] Rate limiting middleware (Ai suggestion)
@@ -460,6 +463,8 @@ go test ./test/router/...
 - [ ] OpenAPI/Swagger documentation generation
 - [ ] Some UI backoffice ?
 - [ ] GraphQL support
+- [ ] Typescript generation ...
+- [ ] Atomic operations ...
 
 
 ## License

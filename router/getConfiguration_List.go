@@ -122,7 +122,7 @@ func (r *ApiRouter[T]) GetSortOrder(c *gin.Context) (map[string]string, error) {
 	for field, order := range queryParams {
 		order = strings.ToUpper(order)
 		if (order != "ASC" && order != "DESC") || !slices.Contains(SortableFields.Values, field) {
-			return nil, errors.ErrBadRequest
+			return nil, errors.BadRequest
 		}
 		sortParams[field] = order
 	}
@@ -185,4 +185,16 @@ func (r *ApiRouter[T]) GetIds(c *gin.Context) []string {
 		return strings.Split(idsValues[0], ",")
 	}
 	return idsValues
+}
+
+func (r *ApiRouter[T]) GetBatchLimit(c *gin.Context, routeType route.RouteType) (int, error) {
+	batchLimitConf, err := r.GetConfiguration(configuration.BatchLimitType, routeType)
+	if err != nil {
+		return 0, err
+	}
+	batchLimit, err := strconv.Atoi(batchLimitConf.Values[0])
+	if err != nil {
+		return 0, err
+	}
+	return batchLimit, nil
 }

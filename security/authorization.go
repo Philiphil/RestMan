@@ -13,5 +13,8 @@ type AuthorizationFunction func(User, entity.Entity) bool
 // it always returns true because it is reached only if the user is authenticated
 // AuthenticationRequired validates that a user is authenticated before accessing an entity.
 func AuthenticationRequired(user User, object entity.Entity) bool {
+	if user == nil {
+		return false
+	}
 	return true
 }

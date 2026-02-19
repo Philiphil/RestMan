@@ -13,6 +13,7 @@ import (
 
 type Resource struct {
 	entity.BaseEntity
+	HiddenField  string `groups:"admin"`
 	SubResources []SubResource
 }
 

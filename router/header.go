@@ -82,7 +82,7 @@ func ParseAcceptHeader(acceptHeader string) (format.Format, error) {
 		}
 	}
 
-	return format.Undefined, errors.ErrNotAcceptable
+	return format.Undefined, errors.NotAcceptable
 }
 
 // ParseTypeFromString converts a media type string to a Format constant.

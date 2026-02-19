@@ -21,7 +21,7 @@ import (
 )
 
 func TestAuthenticationRequired(t *testing.T) {
-	if !AuthenticationRequired(nil, nil) {
+	if !AuthenticationRequired(TestUser{}, nil) {
 		t.Error("AuthenticationRequired() should return true")
 	}
 }
@@ -98,15 +98,22 @@ type TestFirewall struct {
 func (f TestFirewall) GetUser(c *gin.Context) (User, error) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return nil, errors.ErrUnauthorized
+		// Now we're making this unblocking to mimic a real scenario
+		// In a real scenario, the firewall would check if the token is valid and return an error if it's not
+		// but it would not block the request if the token is missing, allowing other firewalls to check for other authentication methods (e.g. session, cookie, etc.)
+		return nil, errors.FirewallNonBlocking()
 	}
 	id := entity.CastId(token)
-	if id == 0 { // non blocking error
-		return TestUser{}.SetId(id), errors.ApiError{Code: http.StatusUnauthorized, Message: "unauthorized", Blocking: false}
+	if id == 0 {
+		// == 0 is a minimal implementation of an ID check
+		// the idea is to mimic a scenario where the token is present but invalid
+		// which is a scenario we want to be blocking
+		return nil, errors.FirewallBlocking()
 	}
 	return TestUser{}.SetId(id), nil
 }
 
+// this does not test advance chaining ...
 func TestMain_FireWall(t *testing.T) {
 	r := SetupFireWallRouter()
 	w := httptest.NewRecorder()
@@ -117,7 +124,7 @@ func TestMain_FireWall(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/protected_entity/1", nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusUnauthorized {
-		t.Error("Should return 401")
+		t.Errorf("Should return 401, returns %d", w.Code)
 	}
 
 	w = httptest.NewRecorder()
@@ -132,8 +139,8 @@ func TestMain_FireWall(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/protected_entity/1", nil)
 	req.Header.Add("Authorization", "0")
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		t.Error("Should return 200")
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("Should return 401, returns %d", w.Code)
 	}
 
 }
