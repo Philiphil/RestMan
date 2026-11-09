@@ -20,21 +20,21 @@ func NewRepository[M entity.DatabaseModel[E], E entity.Entity](db *gorm.DB) *Gor
 
 // GormRepository is a GORM-based implementation of the RestRepository interface.
 type GormRepository[M entity.DatabaseModel[E], E entity.Entity] struct {
-	db                 *gorm.DB
-	assocationsLoaded  bool
-	preloadAssocations bool
-	associations       []string
+	db                  *gorm.DB
+	assocationsLoaded   bool
+	preloadAssociations bool
+	associations        []string
 }
 
 // EnablePreloadAssociations enables automatic preloading of entity associations.
 func (r *GormRepository[M, E]) EnablePreloadAssociations() *GormRepository[M, E] {
-	r.preloadAssocations = true
+	r.preloadAssociations = true
 	return r
 }
 
 // DisablePreloadAssociations disables automatic preloading of entity associations.
 func (r *GormRepository[M, E]) DisablePreloadAssociations() *GormRepository[M, E] {
-	r.preloadAssocations = false
+	r.preloadAssociations = false
 	return r
 }
 
@@ -125,7 +125,7 @@ func (r *GormRepository[M, E]) getPreWarmDbForSelect(ctx context.Context, specif
 		}
 	}
 
-	if r.preloadAssocations {
+	if r.preloadAssociations {
 		if !r.assocationsLoaded {
 			var start M
 			r.setAssociations(&start)
@@ -165,7 +165,10 @@ func (r *GormRepository[M, E]) FindAll(ctx context.Context, specification ...Spe
 // FindByIDs retrieves multiple entities by their IDs.
 func (r *GormRepository[M, E]) FindByIDs(ctx context.Context, ids []entity.ID) ([]*E, error) {
 	var models []M
-	err := r.db.WithContext(ctx).Find(&models, ids).Error
+
+	dbPrewarm := r.getPreWarmDbForSelect(ctx)
+
+	err := dbPrewarm.WithContext(ctx).Find(&models, ids).Error
 	if err != nil {
 		return nil, err
 	}

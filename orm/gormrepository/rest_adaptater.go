@@ -2,8 +2,14 @@ package gormrepository
 
 import (
 	"context"
+	"slices"
+	"strings"
+	"sync"
+	"unicode"
 
+	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
+	"gorm.io/gorm/schema"
 )
 
 // Create implements RestRepository.Create by inserting entities.
@@ -45,4 +51,49 @@ func (r *GormRepository[M, E]) Count(ctx context.Context) (i int64, err error) {
 	model := new(M)
 	err = r.getPreWarmDbForSelect(ctx).Model(model).Count(&i).Error
 	return
+}
+
+func ConvertToSnakeCase(input string) string {
+	if input == "" {
+		return ""
+	}
+
+	var builder strings.Builder
+	builder.Grow(len(input) + 5)
+
+	for i, r := range input {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				builder.WriteRune('_')
+			}
+			builder.WriteRune(unicode.ToLower(r))
+		} else {
+			builder.WriteRune(r)
+		}
+	}
+
+	return builder.String()
+}
+
+// LoadAssociations implements RestRepository.LoadAssociations by returning a copy that preloads the named associations (snake case).
+// The receiver is left untouched, so it stays safe to share between requests.
+func (r *GormRepository[M, E]) LoadAssociations(associations []string) (orm.RestRepository[entity.DatabaseModel[E], E], error) {
+	if len(associations) == 0 {
+		return r, nil
+	}
+	var model M
+	sc, err := schema.Parse(&model, &sync.Map{}, r.db.NamingStrategy)
+	if err != nil {
+		return nil, err
+	}
+	scoped := *r
+	scoped.preloadAssociations = true
+	scoped.assocationsLoaded = true
+	scoped.associations = nil
+	for _, relation := range sc.Relationships.Relations {
+		if slices.Contains(associations, ConvertToSnakeCase(relation.Name)) {
+			scoped.associations = append(scoped.associations, relation.Name)
+		}
+	}
+	return &scoped, nil
 }

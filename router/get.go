@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/philiphil/restman/configuration"
 	"github.com/philiphil/restman/errors"
+	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/route"
 )
 
@@ -35,7 +36,15 @@ func (r *ApiRouter[T]) GetIncludedRelationships(c *gin.Context, routeType route.
 
 // Get handles HTTP GET requests to retrieve a single entity by ID.
 func (r *ApiRouter[T]) Get(c *gin.Context) {
-	object, err := r.Orm.GetByID(c.Request.Context(), c.Param("id"))
+	include := r.GetIncludedRelationships(c, route.Get)
+
+	repo, err := r.Orm.Repo.LoadAssociations(include)
+	if err != nil {
+		abortWithError(c, errors.Internal)
+		return
+	}
+
+	object, err := orm.NewORM(repo).GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		abortWithApiError(c, errors.NotFound)
 		return

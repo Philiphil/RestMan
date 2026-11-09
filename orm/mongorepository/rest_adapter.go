@@ -3,6 +3,7 @@ package mongorepository
 import (
 	"context"
 
+	"github.com/philiphil/restman/orm"
 	"github.com/philiphil/restman/orm/entity"
 )
 
@@ -43,4 +44,9 @@ func (r *MongoRepository[M, E]) New() E {
 // Count implements RestRepository.Count by returning the total number of documents.
 func (r *MongoRepository[M, E]) Count(ctx context.Context) (int64, error) {
 	return r.collection.CountDocuments(ctx, map[string]interface{}{})
+}
+
+// LoadAssociations implements RestRepository.LoadAssociations as a no-op, MongoDB has no associations to preload.
+func (r *MongoRepository[M, E]) LoadAssociations(associations []string) (orm.RestRepository[entity.DatabaseModel[E], E], error) {
+	return r, nil
 }

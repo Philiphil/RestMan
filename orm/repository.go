@@ -16,5 +16,7 @@ type RestRepository[M entity.DatabaseModel[E], E entity.Entity] interface {
 	List(ctx context.Context, limit int, offset int, order map[string]string) ([]E, error)
 	Count(ctx context.Context) (int64, error)
 
+	LoadAssociations(associations []string) (RestRepository[entity.DatabaseModel[E], E], error)
+
 	New() E
 }

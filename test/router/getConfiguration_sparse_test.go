@@ -2,7 +2,6 @@ package router_test
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -290,16 +289,12 @@ func TestParseDotNotationFields_SubResourceNotIncluded(t *testing.T) {
 
 	// Simulate query params: ?fields=id,sub_resource,sub_resource.title
 	req, _ := http.NewRequest("GET", "/api/resource/1", nil)
+	//req, _ := http.NewRequest("GET", "/api/resource/1?include=sub_resources", nil)
 	//req, _ := http.NewRequest("GET", "/api/resource/1?fields=Id,Name,HiddenField,SubResources,SubResources.Title", nil)
 	router.ServeHTTP(w, req)
 
 	// display body
 	body := w.Body.String()
-	orrrm.EnablePreloadAssociations()
-	test, _ := orrrm.FindByID(req.Context(), 1)
-	fmt.Println("SubResource in DB:", test)
-	tt, _ := orrrmm.FindAll(context.Background())
-	fmt.Println("All SubResources in DB:", tt)
 	panic(body)
 
 }
